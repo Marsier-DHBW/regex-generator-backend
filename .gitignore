@@ -1,0 +1,23 @@
+# PyCharm / JetBrains
+.idea
+.venv
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg
+*.egg-info/
+*.eggs/
+*.manifest
+*.spec
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# saves
+/ml/ml_results/
+
+
+
