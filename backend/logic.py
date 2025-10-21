@@ -1,12 +1,12 @@
 import re
 import os
-from .FileType import FileType as ft
+from FileType import FileType as ft
 import ml.transformer as transformer
 import json
 import csv
 from io import StringIO
 from xml.etree import ElementTree as ET
-from .regexgenerator import RegexGenerator
+from regexgenerator import RegexGenerator
 
 
 def match(pattern: str, string: str) -> bool:
@@ -48,7 +48,7 @@ def detect_filetype(string: str, is_file: bool, is_ml: bool) -> 'ft':
         else:
             data_string = string.strip()
             if not data_string:
-                return ft.UNKNOWN
+                return ft.UNSUPPORTED
 
             # 1. JSON
             if is_json(data_string):
@@ -67,7 +67,7 @@ def detect_filetype(string: str, is_file: bool, is_ml: bool) -> 'ft':
                 return ft.CSV
 
             # 5. Fallback
-            return ft.UNKNOWN
+            return ft.UNSUPPORTED
 
     return filetype
 
