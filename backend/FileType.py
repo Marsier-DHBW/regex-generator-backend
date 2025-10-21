@@ -6,3 +6,4 @@ class FileType(Enum):
     XML = 1
     CSV = 2
     HTML = 3
+    UNSUPPORTED = 4

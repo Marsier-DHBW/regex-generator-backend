@@ -5,19 +5,26 @@ import numpy as np
 import torch
 from transformers.modeling_utils import SpecificPreTrainedModelType
 import os
-from backend.FileType import FileType as ft
+from backend.filetype import FileType as ft
+from datasets import Dataset
+import pandas as pd
+from pathlib import Path
 
-# Daten vorbereiten: Beispiel-Datensatz-Format ###############
-def __example_dataset():
-    texts = [
-        '{"name": "john", "age": 10}',
-        '<root><item>value</item></root>',
-        'name;age\nJohn;30',
-        '<html><body>Hello</body></html>'
-    ]
-    labels = [ft.JSON.value, ft.XML.value, ft.CSV.value, ft.HTML.value]  # 0=JSON, 1=XML, 2=CSV, 3=HTML
+def __load_datasets() -> Dataset:
+    folder_path = Path("datasets")
+    csv_files = list(folder_path.glob("*.csv"))
 
-    return Dataset.from_dict({'text': texts, 'label': labels})
+    # Liste für alle DataFrames
+    df_list = []
+
+    for csv_file in csv_files:
+        df = pd.read_csv(csv_file, delimiter=';', encoding='utf-8')
+        df_list.append(df)
+
+    # Alle DataFrames zusammenführen
+    combined_df = pd.concat(df_list, ignore_index=True)
+
+    return Dataset.from_pandas(combined_df.reset_index(drop=True))
 
 # Tokenisierung und Chunking #####################
 def __chunk_text(txt: str, chunk_size=512):
@@ -74,7 +81,7 @@ def __train(tokenized_chunked_dataset: Dataset):
     tokenizer.save_pretrained(path + 'trained_model')
 
 def __train_model_with_example_data():
-    ex_dataset = __example_dataset()
+    ex_dataset = __load_datasets()
     chunked_dataset = __chunk_dataset(ex_dataset)
     tokenized_chunked_dataset = __tokenize_dataset(chunked_dataset, __tokenize_lambda)
     __train(tokenized_chunked_dataset=tokenized_chunked_dataset)
@@ -112,11 +119,13 @@ def prepare_transformer():
 
 # api #############
 def make_prediction(text: str) -> tuple[str, list]:
+    """Make a prediction. The model has to be prepared before"""
     label, probs = __predict(text=text)
     return str(ft(label).name), probs
 
 # api #############
 def predict(text: str) -> tuple[str, list]:
+    """Prepare the model and make a prediction"""
     prepare_transformer()
     return make_prediction(text)
 
