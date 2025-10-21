@@ -111,19 +111,24 @@ def is_xml(data_string: str) -> bool:
 
 
 def is_csv(data_string: str) -> bool:
-    """Prüft, ob der String CSV-artige Struktur hat."""
+    """Prüft, ob der String CSV- oder TSV-artige Struktur hat."""
     data_string = data_string.strip()
     if not data_string:
         return False
 
-    # Mindeststruktur: mehrere Zeilen oder mehrere Kommas
-    if '\n' not in data_string and data_string.count(',') < 1:
+    # Häufige Trennzeichen in CSV/TSV-Dateien
+    common_delimiters = [',', ';', '\t', '|', ':']
+
+    # Mindeststruktur: mehrere Zeilen oder mehrere Trennzeichen
+    if '\n' not in data_string and not any(data_string.count(d) >= 1 for d in common_delimiters):
         return False
 
     try:
-        sample = data_string[:2048]  # Größerer Sample-Bereich
+        sample = data_string[:4096]  # Größerer Sample-Bereich
         f = StringIO(sample)
-        dialect = csv.Sniffer().sniff(sample)
+
+        # csv.Sniffer versucht automatisch, das richtige Trennzeichen zu erkennen
+        dialect = csv.Sniffer().sniff(sample, delimiters=common_delimiters)
         f.seek(0)
         reader = csv.reader(f, dialect)
 
@@ -135,10 +140,10 @@ def is_csv(data_string: str) -> bool:
             except StopIteration:
                 break
 
-        if len(rows) < 2:  # mindestens 2 Zeilen für CSV
+        # mindestens 2 Zeilen mit konsistenter Spaltenstruktur
+        if len(rows) < 2:
             return False
 
-        # Konsistente Spaltenzahl prüfen
         col_count = len(rows[0])
         if col_count < 2:
             return False
@@ -147,3 +152,4 @@ def is_csv(data_string: str) -> bool:
 
     except csv.Error:
         return False
+
