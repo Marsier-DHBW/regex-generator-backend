@@ -1,6 +1,6 @@
 import re
 import os
-from FileType import FileType as ft
+from backend.enums.FileType import FileType as ft
 import ml.transformer as transformer
 import json
 import csv
