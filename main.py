@@ -1,5 +1,5 @@
-from backend import logic
+import ml.transformer as t
 
 if __name__ == '__main__':
-    print(logic.detect_filetype('{"name": "john", "age": 10}'))
-
+    t.prepare_transformer()
+    print(t.make_prediction('{"key":"value"}'))
