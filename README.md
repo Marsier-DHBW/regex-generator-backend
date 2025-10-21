@@ -34,14 +34,19 @@ Aus Gründen der Komplexität und Verarbeitbarkeit wird die Eingabe auf eine beg
 
 Zur Wahrung der Effizienz und zur Einhaltung der theoretischen Grenzen regulärer Sprachen gilt:
 
-- Jedes zugelassene Dateiformat darf **maximal zwei Ebenen tief** verschachtelt sein.  
+- Jedes zugelassene Dateiformat darf **maximal drei Ebenen tief** verschachtelt sein.  
 - Beispielhafte gültige Strukturen:
 
 ```
 {
-    "user": {
+    "player": {
         "name": "Max",
-        "address": "Berlin"
+        "age": 20,
+        "games": [
+            "Minecraft",
+            "Valorant",
+            "Battlefield 6" 
+        ] 
     }
 }
 ```

@@ -1,5 +1,4 @@
 from builtins import callable
-from datasets import Dataset
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification, TrainingArguments, Trainer
 import numpy as np
 import torch
