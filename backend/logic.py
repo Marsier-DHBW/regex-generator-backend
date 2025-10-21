@@ -65,7 +65,7 @@ def detect_filetype(string: str, is_file: bool, is_ml: bool) -> ft:
                     ET.fromstring(data_string)
 
                     # Spezifische HTML-Prüfung (optional, verbessert die Unterscheidung)
-                    if data_string.lower().startswith('<!doctype html>') or '<html' in data_string.lower():
+                    if data_string.lower().startswith('<!doctype html>') or '<html' in data_string.lower() or '<div' in data_string.lower():
                         return "HTML"
 
                     # Wenn erfolgreich geparst, aber kein offensichtliches HTML
