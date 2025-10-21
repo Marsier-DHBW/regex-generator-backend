@@ -12,7 +12,7 @@ def match(pattern: str, string: str) -> bool:
 
 
 def build_regex(filetype: ft, string: str) -> str:
-    regex: str
+    regex: re.Pattern[str]
     match filetype:
         case ft.JSON:
             regex = RegexGenerator.json(string)
@@ -23,8 +23,8 @@ def build_regex(filetype: ft, string: str) -> str:
         case ft.CSV:
             regex = RegexGenerator.csv(string)
         case _:
-            regex = 'Unknown'
-    return regex
+            raise Exception(f"Unsupported file type: {filetype}")
+    return str(regex.pattern)
 
 
 def detect_filetype(string: str, is_file: bool, is_ml: bool) -> type(ft):
