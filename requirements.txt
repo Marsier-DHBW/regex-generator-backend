@@ -2,9 +2,9 @@ datasets==4.2.0
 fastapi==0.119.1
 numpy==2.3.4
 pandas==2.3.3
-torch==2.7.1
-torchvision==0.22.1
-torchaudio==2.7.1
+torch==2.7.1+cu118
+torchvision==0.22.1+cu118
+torchaudio==2.7.1+cu118
 pillow>=11.0.0
 transformers==4.57.1
 uvicorn==0.38.0
