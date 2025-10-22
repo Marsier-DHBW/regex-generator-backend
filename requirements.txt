@@ -6,3 +6,6 @@ datasets==4.2.0
 hf-xet==1.1.10
 pip==25.2
 transformers==4.57.1
+pandas~=2.3.3
+uvicorn~=0.38.0
+fastapi~=0.119.1

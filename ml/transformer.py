@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from transformers.modeling_utils import SpecificPreTrainedModelType
 import os
-from backend.filetype import FileType as ft
+from backend.enums.FileType import FileType as ft
 from datasets import Dataset
 import pandas as pd
 from pathlib import Path
@@ -135,6 +135,6 @@ def predict(text: str) -> tuple[str, list]:
 # api #############
 def prepare_and_predict(text: str) -> tuple[str, list]:
     """Prepare the model and make a prediction"""
-    prepare_transformer()
+    prepare_model()
     return predict(text)
 
