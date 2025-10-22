@@ -59,7 +59,7 @@ def generate(rows=5000):
         xml_str = generate_nested_xml(max_depth=random.choice([1, 3]))
         data.append((xml_str, 1))  # Label 1 = XML
 
-    csv_path = "xml_dataset.csv"
+    csv_path = "../synth_datasets/xml_dataset.csv"
     with open(csv_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f, delimiter=';')
         writer.writerow(["text", "label"])

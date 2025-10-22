@@ -51,7 +51,7 @@ def generate(rows=5000):  # Anzahl CSV-Beispiele
         csv_text = generate_csv_example()
         data.append((csv_text, 2))  # Label 2 = CSV
 
-    csv_path = "csv_dataset.csv"
+    csv_path = "../synth_datasets/csv_dataset.csv"
     with open(csv_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f, delimiter=';')
         writer.writerow(["text", "label"])

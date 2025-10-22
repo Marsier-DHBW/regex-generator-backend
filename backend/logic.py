@@ -4,6 +4,7 @@ import re
 from io import StringIO
 from xml.etree import ElementTree as ET
 
+import ml.transformer
 import ml.transformer as transformer
 from backend.enums.FileType import FileType as ft
 from backend.regexgenerators import build_json_regex, build_xml_regex, build_html_regex, build_csv_regex
@@ -150,3 +151,6 @@ def is_csv(data_string: str) -> bool:
     except csv.Error:
         return False
 
+
+if __name__ == '__main__':
+    ml.transformer.prepare_model()

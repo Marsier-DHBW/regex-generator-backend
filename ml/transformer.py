@@ -13,7 +13,7 @@ from synth_datasets.dataset_central_generator import generate_datasets
 
 
 def __load_datasets() -> Dataset:
-    folder_path = Path("synth_datasets")
+    folder_path = Path("../synth_datasets")
     csv_files = list(folder_path.glob("*.csv"))
 
     # Liste für alle DataFrames
@@ -79,6 +79,8 @@ def __train(tokenized_chunked_dataset: Dataset):
         tokenizer=tokenizer
     )
     trainer.train()
+    print(f"GPU: {torch.cuda.current_device()}")
+    print(f"GPU: {torch.cuda.is_available()}")
     trainer.save_model(trainer_path)
     tokenizer.save_pretrained(trainer_path)
 
@@ -100,8 +102,9 @@ def __predict(text: str):
     return pred_label, avg_probs
 
 
-path = './ml_results/'
+path = '../ml_results/'
 trainer_path = path + 'distilbert_trained'
+data_path = '../synth_datasets'
 tokenizer: DistilBertTokenizer
 model: SpecificPreTrainedModelType
 
@@ -110,11 +113,14 @@ def prepare_model():
     global tokenizer
     global model
 
-    data_rows = 40000
+    data_rows = 80000
     if not os.path.isdir(path):
-        print(f"Creating {data_rows} data rows")
-        generate_datasets(rows_total=data_rows)
-        print("Data creation done. Beginning training")
+        if not any(fname.endswith('.csv') for fname in os.listdir(data_path)):
+            print(f"Creating {data_rows} data rows")
+            generate_datasets(rows_total=data_rows)
+            print("Created data.")
+
+        print("Beginning training with data")
         tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
         model = DistilBertForSequenceClassification.from_pretrained('distilbert-base-uncased', num_labels=4)
         __train_model_with_example_data()
