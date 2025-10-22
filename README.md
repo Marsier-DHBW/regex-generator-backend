@@ -135,7 +135,9 @@ Generiert einen Regex basierend auf dem übergebenen text.
   
   
 ### 3. DetectFileType-Endpunkt
-Generiert einen Regex basierend auf dem übergebenen text.
+Erkennt den Dateityp basierend auf dem übergebenen text. Dabei können zwei Ansätze ausgewählt werden:  
+1. **Regelbasierter** Ansatz
+2. **Machine Learning** Ansatz
 
 - **Resource**: `/detectfiletype`
 - **Methode:** POST
