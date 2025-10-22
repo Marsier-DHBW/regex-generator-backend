@@ -78,13 +78,14 @@ Diese Einschränkungen stellen sicher, dass:
 ## 4. API Dokumentation
 ### Endpunkte
 
-Die Base URL lautet: `/v1/api/endpoint/match`.
-Bei standalone ausführung des Python-Projekts ist die API über den Port `50123` aufzurufen.
+Die Base URL lautet: `/v1/api/endpoint/` bzw. https://regex-generator-backend.onrender.com/v1/api/endpoint.  
+Bei standalone ausführung des Python-Projekts ist die API über den Port `50123` aufzurufen.  
+
 
 1. /match
 2. /generate
 3. /detecttype
-
+  
 ### 1. Match-Endpunkt
 Überprüft ob der übergebene text dem regex pattern entspricht.
 
@@ -107,8 +108,8 @@ Bei standalone ausführung des Python-Projekts ist die API über den Port `50123
 }
 ```
 - **Response Codes:** 200, 400
-<br>
-<br>
+
+  
 ### 2. Generate-Endpunkt
 Generiert einen Regex basierend auf dem übergebenen text.
 
@@ -131,8 +132,8 @@ Generiert einen Regex basierend auf dem übergebenen text.
 }
 ```
 - **Response Codes:** 200, 400
-<br>
-<br>
+  
+  
 ### 3. DetectFileType-Endpunkt
 Generiert einen Regex basierend auf dem übergebenen text.
 
