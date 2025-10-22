@@ -61,17 +61,17 @@ def generate_nested_html(tag_name="html", max_depth=3, current_depth=1):
     html += f"</{tag_name}>"
     return html
 
-num_samples = 5000  # Anzahl HTML-Beispiele
-data = []
+def generate(rows=5000):
+    data = []
 
-for _ in range(num_samples):
-    html_str = generate_nested_html("html", max_depth=random.choice([2, 3]))
-    data.append((html_str, 3))  # Label 3 = HTML
+    for _ in range(rows):
+        html_str = generate_nested_html("html", max_depth=random.choice([2, 3]))
+        data.append((html_str, 3))  # Label 3 = HTML
 
-csv_path = "html_dataset.csv"
-with open(csv_path, "w", newline="", encoding="utf-8") as f:
-    writer = csv.writer(f, delimiter=';')
-    writer.writerow(["text", "label"])
-    writer.writerows(data)
+    csv_path = "html_dataset.csv"
+    with open(csv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f, delimiter=';')
+        writer.writerow(["text", "label"])
+        writer.writerows(data)
 
-print(f"Datei '{csv_path}' erfolgreich erstellt ({len(data)} Beispiele).")
+    print(f"Datei '{csv_path}' erfolgreich erstellt ({len(data)} Beispiele).")
