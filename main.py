@@ -1,5 +1,8 @@
-from backend import logic
+import ml.transformer as t
+from backend.filetype import FileType
+from backend.logic import build_regex
+from backend.Regexgenerator import RegexGenerator
 
 if __name__ == '__main__':
-    print(logic.detect_filetype('{"name": "john", "age": 10}'))
+    print(build_regex(FileType.JSON, '{"name":"darian", "age": 5}'))
 

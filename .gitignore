@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 # PyCharm / JetBrains
 .idea
 .venv
@@ -18,3 +19,31 @@ Thumbs.db
 
 # saves
 /ml_results/
+=======
+# PyCharm / JetBrains
+.idea
+.venv
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg
+*.egg-info/
+*.eggs/
+*.manifest
+*.spec
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# saves
+/ml_results/
+
+# datasets
+/datasets/csv_dataset.csv
+/datasets/xml_dataset.csv
+/datasets/html_dataset.csv
+/datasets/json_dataset.csv
+>>>>>>> Stashed changes
