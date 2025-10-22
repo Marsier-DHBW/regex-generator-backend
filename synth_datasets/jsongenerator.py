@@ -2,7 +2,6 @@ import json
 import random
 import string
 import csv
-from datasets import load_dataset
 
 def random_string(length=5):
     """Erzeugt zufällige Kleinbuchstaben-Strings"""
@@ -37,18 +36,18 @@ def generate_nested_json(max_depth=3, current_depth=1):
 
     return obj
 
-num_samples = 5000  # Anzahl JSON-Beispiele
-data = []
+def generate(rows=5000):
+    data = []
 
-for _ in range(num_samples):
-    json_obj = generate_nested_json(max_depth=random.choice([1, 3]))
-    json_str = json.dumps(json_obj)
-    data.append((json_str, 0))  # Label 0 = JSON
+    for _ in range(rows):
+        json_obj = generate_nested_json(max_depth=random.choice([1, 3]))
+        json_str = json.dumps(json_obj)
+        data.append((json_str, 0))  # Label 0 = JSON
 
-csv_path = "json_dataset.csv"
-with open(csv_path, "w", newline="", encoding="utf-8") as f:
-    writer = csv.writer(f, delimiter=';')
-    writer.writerow(["text", "label"])  # Header
-    writer.writerows(data)
+    csv_path = "json_dataset.csv"
+    with open(csv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f, delimiter=';')
+        writer.writerow(["text", "label"])  # Header
+        writer.writerows(data)
 
-print(f"Datei '{csv_path}' erfolgreich erstellt ({len(data)}) Beispiele.")
+    print(f"Datei '{csv_path}' erfolgreich erstellt ({len(data)}) Beispiele.")

@@ -44,17 +44,17 @@ def generate_csv_example():
 
     return "\n".join(lines)
 
-num_samples = 5000  # Anzahl CSV-Beispiele
-data = []
+def generate(rows=5000):  # Anzahl CSV-Beispiele
+    data = []
 
-for _ in range(num_samples):
-    csv_text = generate_csv_example()
-    data.append((csv_text, 2))  # Label 2 = CSV
+    for _ in range(rows):
+        csv_text = generate_csv_example()
+        data.append((csv_text, 2))  # Label 2 = CSV
 
-csv_path = "csv_dataset.csv"
-with open(csv_path, "w", newline="", encoding="utf-8") as f:
-    writer = csv.writer(f, delimiter=';')
-    writer.writerow(["text", "label"])
-    writer.writerows(data)
+    csv_path = "csv_dataset.csv"
+    with open(csv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f, delimiter=';')
+        writer.writerow(["text", "label"])
+        writer.writerows(data)
 
-print(f"Datei '{csv_path}' erfolgreich erstellt ({len(data)} Beispiele).")
+    print(f"Datei '{csv_path}' erfolgreich erstellt ({len(data)} Beispiele).")

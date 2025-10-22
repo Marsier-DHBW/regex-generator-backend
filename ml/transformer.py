@@ -9,8 +9,11 @@ from datasets import Dataset
 import pandas as pd
 from pathlib import Path
 
+from synth_datasets.dataset_central_generator import generate_datasets
+
+
 def __load_datasets() -> Dataset:
-    folder_path = Path("datasets")
+    folder_path = Path("synth_datasets")
     csv_files = list(folder_path.glob("*.csv"))
 
     # Liste für alle DataFrames
@@ -58,7 +61,7 @@ def __tokenize_dataset(chunked_dataset: Dataset, tokenize_function: callable):
 def __train(tokenized_chunked_dataset: Dataset):
     train_test = tokenized_chunked_dataset.train_test_split(test_size=0.2)
     training_args = TrainingArguments(
-        output_dir=path + 'results',
+        output_dir=path + 'output',
         do_eval=True,
         learning_rate=2e-5,
         per_device_train_batch_size=8,
@@ -76,8 +79,8 @@ def __train(tokenized_chunked_dataset: Dataset):
         tokenizer=tokenizer
     )
     trainer.train()
-    trainer.save_model(path + 'trained_model')
-    tokenizer.save_pretrained(path + 'trained_model')
+    trainer.save_model(trainer_path)
+    tokenizer.save_pretrained(trainer_path)
 
 def __train_model_with_example_data():
     ex_dataset = __load_datasets()
@@ -98,33 +101,40 @@ def __predict(text: str):
 
 
 path = './ml_results/'
+trainer_path = path + 'distilbert_trained'
 tokenizer: DistilBertTokenizer
 model: SpecificPreTrainedModelType
 
 # api ##############################################
-def prepare_transformer():
+def prepare_model():
     global tokenizer
     global model
 
+    data_rows = 40000
     if not os.path.isdir(path):
+        print(f"Creating {data_rows} data rows")
+        generate_datasets(rows_total=data_rows)
+        print("Data creation done. Beginning training")
         tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
         model = DistilBertForSequenceClassification.from_pretrained('distilbert-base-uncased', num_labels=4)
         __train_model_with_example_data()
     else:
-        tokenizer = DistilBertTokenizer.from_pretrained(path + 'trained_model')
-        model = DistilBertForSequenceClassification.from_pretrained(path + 'trained_model', num_labels=4)
+        print("Loading pre-trained model from saves")
+        tokenizer = DistilBertTokenizer.from_pretrained(trainer_path)
+        model = DistilBertForSequenceClassification.from_pretrained(trainer_path, num_labels=4)
 
+    print("Done. Model in eval mode")
     model.eval()
 
 # api #############
-def make_prediction(text: str) -> tuple[str, list]:
+def predict(text: str) -> tuple[str, list]:
     """Make a prediction. The model has to be prepared before"""
     label, probs = __predict(text=text)
     return str(ft(label).name), probs
 
 # api #############
-def predict(text: str) -> tuple[str, list]:
+def prepare_and_predict(text: str) -> tuple[str, list]:
     """Prepare the model and make a prediction"""
     prepare_transformer()
-    return make_prediction(text)
+    return predict(text)
 

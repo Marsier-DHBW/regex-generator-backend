@@ -19,8 +19,8 @@ Thumbs.db
 # saves
 /ml_results/
 
-# datasets
-/datasets/csv_dataset.csv
-/datasets/xml_dataset.csv
-/datasets/html_dataset.csv
-/datasets/json_dataset.csv
+# synth_datasets
+/synth_datasets/csv_dataset.csv
+/synth_datasets/xml_dataset.csv
+/synth_datasets/html_dataset.csv
+/synth_datasets/json_dataset.csv

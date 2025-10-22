@@ -52,21 +52,17 @@ def generate_nested_xml(tag_name="root", max_depth=3, current_depth=1):
     xml += f"</{tag_name}>"
     return xml
 
-num_samples = 5000  # Anzahl XML-Beispiele
-data = []
+def generate(rows=5000):
+    data = []
 
-for _ in range(num_samples):
-    xml_str = generate_nested_xml(max_depth=random.choice([1, 3]))
-    data.append((xml_str, 1))  # Label 1 = XML
+    for _ in range(rows):
+        xml_str = generate_nested_xml(max_depth=random.choice([1, 3]))
+        data.append((xml_str, 1))  # Label 1 = XML
 
-# -----------------------
-# In CSV-Datei speichern
-# -----------------------
+    csv_path = "xml_dataset.csv"
+    with open(csv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f, delimiter=';')
+        writer.writerow(["text", "label"])
+        writer.writerows(data)
 
-csv_path = "xml_dataset.csv"
-with open(csv_path, "w", newline="", encoding="utf-8") as f:
-    writer = csv.writer(f, delimiter=';')
-    writer.writerow(["text", "label"])
-    writer.writerows(data)
-
-print(f"Datei '{csv_path}' erfolgreich erstellt ({len(data)} Beispiele).")
+    print(f"Datei '{csv_path}' erfolgreich erstellt ({len(data)} Beispiele).")

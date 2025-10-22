@@ -1,12 +1,12 @@
 import re
-import os
 from backend.enums.FileType import FileType as ft
 import ml.transformer as transformer
 import json
 import csv
 from io import StringIO
 from xml.etree import ElementTree as ET
-from regexgenerator import RegexGenerator
+
+from backend.regexgenerators import build_json_regex, build_xml_regex, build_html_regex, build_csv_regex
 
 
 def match(pattern: str, string: str) -> bool:
@@ -20,19 +20,19 @@ def build_regex(filetype: ft, string: str) -> str:
     regex: re.Pattern[str]
     match filetype:
         case ft.JSON:
-            regex = RegexGenerator.json(string)
+            regex = build_json_regex.json(string)
         case ft.XML:
-            regex = RegexGenerator.xml(string)
+            regex = build_xml_regex.xml(string)
         case ft.HTML:
-            regex = RegexGenerator.html(string)
+            regex = build_html_regex.html(string)
         case ft.CSV:
-            regex = RegexGenerator.csv(string)
+            regex = build_csv_regex.csv(string)
         case _:
             raise Exception(f"Unsupported file type: {filetype}")
     return str(regex.pattern)
 
 
-def detect_filetype(string: str, is_file: bool, is_ml: bool) -> 'ft':
+def detect_filetype(string: str, is_file: bool, is_ml: bool) -> type(ft):
     """
     Erkennt den Dateityp eines Strings anhand seines Inhalts.
     Kann optional ML-Vorhersage verwenden.
