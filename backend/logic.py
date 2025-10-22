@@ -16,7 +16,7 @@ def match(pattern: re.Pattern[str], string: str) -> bool:
         return bool(pattern.match(string))
 
 
-def build_regex(filetype: ft, string: str) -> str:
+def generate_regex(filetype: ft, string: str) -> str:
     regex: re.Pattern[str]
     match filetype:
         case ft.JSON:
@@ -70,9 +70,6 @@ def detect_filetype(string: str, is_file: bool, is_ml: bool) -> type(ft):
             return ft.UNSUPPORTED
 
     return filetype
-
-
-# ---------- Hilfsfunktionen ----------
 
 def is_json(data_string: str) -> bool:
     """Prüft, ob der String gültiges JSON ist."""
