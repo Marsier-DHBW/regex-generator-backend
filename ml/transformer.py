@@ -25,6 +25,7 @@ def __load_datasets() -> Dataset:
 
     # Alle DataFrames zusammenführen
     combined_df = pd.concat(df_list, ignore_index=True)
+    print(f"Loaded {len(combined_df)} rows")
 
     return Dataset.from_pandas(combined_df.reset_index(drop=True))
 
@@ -78,9 +79,9 @@ def __train(tokenized_chunked_dataset: Dataset):
         eval_dataset=train_test['test'],
         tokenizer=tokenizer
     )
-    trainer.train()
     print(f"GPU: {torch.cuda.current_device()}")
     print(f"GPU: {torch.cuda.is_available()}")
+    trainer.train()
     trainer.save_model(trainer_path)
     tokenizer.save_pretrained(trainer_path)
 
