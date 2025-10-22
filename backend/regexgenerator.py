@@ -67,7 +67,7 @@ def _generate_xml_regex(xml_string: str, max_depth: int = 3) -> str:
     root = ElementTree.fromstring(xml_string)
     # Wir starten hier mit depth=1 für den Root-Tag
     pattern = _build_xml_regex_recursive(root, depth=1, max_depth=max_depth)
-    return f"(?s){pattern}"
+    return f"{pattern}"
 
 
 def _build_xml_regex_recursive(element: ElementTree.Element, depth: int, max_depth: int) -> str:
