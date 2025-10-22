@@ -49,8 +49,7 @@ async def generate_regex(request: Request) -> JSONResponse:
         bad_type = False
         try:
             ft = FileType[filetype]
-            if ft == FileType.UNSUPPORTED:
-                bad_type = True
+            bad_type = ft == FileType.UNSUPPORTED
         except Exception:
             bad_type = True
 
@@ -63,8 +62,8 @@ async def generate_regex(request: Request) -> JSONResponse:
         result_obj["value"] = result
         result_obj["message"] = "Successfully generated regex pattern"
         return JSONResponse(content=result_obj, status_code=status.HTTP_200_OK)
-    except Exception:
-        result_obj["message"] = "Error. File type is not supported"
+    except Exception as e:
+        result_obj["message"] = f"Error. Message: {str(e)}"
         return JSONResponse(content=result_obj, status_code=status.HTTP_400_BAD_REQUEST)
 
 @app.post(api_endpoint + "/detectfiletype")
@@ -83,10 +82,11 @@ async def detect_type_text(request: Request) -> JSONResponse:
         return JSONResponse(content=result_obj, status_code=status.HTTP_400_BAD_REQUEST)
 
     is_ml_bool = is_ml.lower() == "true"
-    ft: type(FileType) = logic.detect_filetype(string=string, is_file=False, is_ml=is_ml_bool)
-
-    if ft == FileType.UNSUPPORTED:
-        result_obj["message"] = "Error. The file type is not supported"
+    ft: type(FileType)
+    try:
+        ft = logic.detect_filetype(string=string, is_file=False, is_ml=is_ml_bool)
+    except Exception as e:
+        result_obj["message"] = f"Error. The file type is not supported. Message: {str(e)}"
         return JSONResponse(content=result_obj, status_code=status.HTTP_400_BAD_REQUEST)
 
     result_obj["message"] = "Successfully detected file type"

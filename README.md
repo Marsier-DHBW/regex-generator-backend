@@ -151,7 +151,7 @@ Generiert einen Regex basierend auf dem übergebenen text.
 - **Response Schema:** 
 ```
 {
-    "value": "JSON|XML|HTML|CSV",
+    "value": "JSON|XML|HTML|CSV|UNSUPPORTED",
     "message": "string"
 }
 ```
