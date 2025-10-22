@@ -3,123 +3,123 @@ import re
 import csv
 import io
 
-class CsvRegexGenerator:
+# Berücksichtigte Trennzeichen
+common_delimiters = [',', ';', '\t', '|', ':']
+
+def _infer_column_pattern(column_data: list[str], delimiter: str) -> str:
     """
-    Generiert ein Regex aus einer Beispiel-CSV-Datei, um die strukturelle Integrität
-    anderer CSV-Dateien zu validieren.
+    Leitet aus einer Liste von Spaltenwerten ein passendes Regex-Pattern ab.
     """
+    # Prüft, ob alle Werte ganze Zahlen sind
+    if all(re.fullmatch(r'\d+', item) for item in column_data if item):
+        return r'\d+'
 
-    def __init__(self, delimiter: str = ','):
-        """
-        Initialisiert den Generator.
+    # Prüft, ob alle Werte Zahlen sind (Ganzzahlen oder Dezimalzahlen)
+    if all(re.fullmatch(r'\d+(?:\.\d+)?', item) for item in column_data if item):
+        return r'\d+(?:\.\d+)?'
 
-        :param delimiter: Das in der CSV-Datei verwendete Trennzeichen.
-        """
-        self.delimiter = delimiter
+    # Standard-Pattern für allgemeinen Text (alles außer dem Trennzeichen)
+    return f'[^{re.escape(delimiter)}]*'
 
-    def _infer_column_pattern(self, column_data: list[str]) -> str:
-        """
-        Leitet aus einer Liste von Spaltenwerten ein passendes Regex-Pattern ab.
-        """
-        # Prüft, ob alle Werte ganze Zahlen sind
-        if all(re.fullmatch(r'\d+', item) for item in column_data if item):
-            return r'\d+'
+def build_csv_regex(example_csv_content: str) -> Pattern[str]:
+    """
+    Erstellt ein Regex, das die Struktur der übergebenen CSV-Daten abbildet.
+    Das Trennzeichen wird automatisch aus der Liste common_delimiters erkannt.
 
-        # Prüft, ob alle Werte Zahlen sind (Ganzzahlen oder Dezimalzahlen)
-        if all(re.fullmatch(r'\d+(\.\d+)?', item) for item in column_data if item):
-            return r'\d+(\.\d+)?'
+    :param example_csv_content: Ein String, der den Inhalt der Beispiel-CSV darstellt.
+    :return: Ein Regex-String zur Validierung der CSV-Struktur.
+    """
+    if not example_csv_content.strip():
+        return ""
 
-        # Standard-Pattern für allgemeinen Text (alles außer dem Trennzeichen)
-        # Erlaubt auch leere Felder
-        return f'[^{self.delimiter}]*'
-
-    def generate_regex(self, example_csv_content: str) -> str:
-        """
-        Erstellt ein Regex, das die Struktur der übergebenen CSV-Daten abbildet.
-
-        :param example_csv_content: Ein String, der den Inhalt der Beispiel-CSV darstellt.
-        :return: Ein Regex-String zur Validierung der CSV-Struktur.
-        """
-        if not example_csv_content:
-            return ""
-
-        reader = csv.reader(io.StringIO(example_csv_content), delimiter=self.delimiter)
-
+    # Trennzeichen automatisch erkennen
+    try:
+        # Sniffer analysiert eine Probe der Daten, um das Format zu erkennen
+        sample = '\n'.join(example_csv_content.splitlines()[:5])
+        dialect = csv.Sniffer().sniff(sample, delimiters=''.join(common_delimiters))
+        delimiter = dialect.delimiter
+    except (csv.Error, IndexError):
+        # Fallback, wenn Sniffer fehlschlägt oder der Inhalt zu klein ist
         try:
-            header = next(reader)
-            data_rows = list(reader)
-        except StopIteration:
-            # CSV ist leer oder hat nur einen Header
-            return ""
+            first_line = example_csv_content.splitlines()[0]
+            counts = {d: first_line.count(d) for d in common_delimiters}
+            delimiter = max(counts, key=counts.get)
+            if counts[delimiter] == 0:
+                delimiter = ',' # Standard-Trennzeichen
+        except IndexError:
+            return "" # Leerer Inhalt
 
-        if not data_rows:
-            # Wenn es keine Datenzeilen gibt, kann keine Struktur abgeleitet werden.
-            # Wir können nur auf den Header prüfen.
-            header_pattern = self.delimiter.join([re.escape(h) for h in header])
-            return f'^{header_pattern}\r?\n?$'
+    reader = csv.reader(io.StringIO(example_csv_content), delimiter=delimiter)
 
+    try:
+        header = next(reader)
+        # Filtere leere Zeilen und Zeilen mit falscher Spaltenanzahl sofort
         num_columns = len(header)
-        columns_data = [[] for _ in range(num_columns)]
+        data_rows = [row for row in reader if row and len(row) == num_columns]
+    except StopIteration:
+        return "" # Leere CSV
 
-        for row in data_rows:
-            # Stellt sicher, dass die Zeile die erwartete Anzahl von Spalten hat
-            if len(row) == num_columns:
-                for i, cell in enumerate(row):
-                    columns_data[i].append(cell)
+    header_pattern = re.escape(delimiter).join([re.escape(h) for h in header])
+    line_ending_pattern = r'(?:\r?\n)'
 
-        # Leitet für jede Spalte ein Pattern ab
-        column_patterns = [self._infer_column_pattern(col) for col in columns_data]
+    # Wenn es keine validen Datenzeilen gibt, nur auf den Header prüfen
+    if not data_rows:
+        return f'^{header_pattern}(?:{line_ending_pattern})?$'
 
-        # Baut das Regex für eine einzelne Datenzeile
-        row_pattern = self.delimiter.join(column_patterns)
+    columns_data = [[] for _ in range(num_columns)]
+    for row in data_rows:
+        for i, cell in enumerate(row):
+            columns_data[i].append(cell)
 
-        # Baut das finale Regex
-        # 1. Header (exakter Match)
-        # 2. Newline
-        # 3. Eine oder mehrere Datenzeilen, die dem abgeleiteten Muster entsprechen
-        header_pattern = self.delimiter.join([re.escape(h) for h in header])
+    column_patterns = [_infer_column_pattern(col, delimiter) for col in columns_data]
+    row_pattern = re.escape(delimiter).join(column_patterns)
 
-        # Das Regex prüft den Header und dann beliebig viele passende Datenzeilen
-        final_regex = f'^{header_pattern}\r?\n({row_pattern}\r?\n)*{row_pattern}?$'
+    # Finales Regex:
+    # 1. ^(header)
+    # 2. (?:\r?\n(row_pattern))*  -> Null oder mehr Datenzeilen
+    # 3. (?:\r?\n)?$             -> Optionaler abschließender Zeilenumbruch
+    final_regex = f'^{header_pattern}(?:{line_ending_pattern}{row_pattern})*(?:{line_ending_pattern})?$'
 
-        return final_regex
+    return final_regex
 
 # Beispiel für die Verwendung
 if __name__ == '__main__':
-    # Beispiel-CSV-Daten
-    csv_content = """id,name,value
-1,product_a,19.99
-2,product_b,25.50
-3,product_c,10
+    # Beispiel 1: Komma als Trennzeichen
+    csv_content_comma = """ id,name,value
+                            1,product_a,19.99
+                            2,product_b,25.50
+                            3,product_c,10
+                        """
+    print("--- Beispiel 1: Komma-getrennt ---")
+    structure_regex_comma = build_csv_regex(csv_content_comma)
+    print(f"Generiertes Regex:\n{structure_regex_comma}\n")
+
+    test_csv_valid = """    
+                        id,name,value
+                        10,test_1,100.1
+                        11,test_2,200
+                    """
+
+
+    test_csv_invalid_data = """id,name,value
+10,test_1,not_a_number"""
+
+    print(f"Test 1 (Valide): {bool(re.fullmatch(structure_regex_comma, test_csv_valid))}")
+    print(f"Test 2 (Invalide Daten): {bool(re.fullmatch(structure_regex_comma, test_csv_invalid_data))}")
+
+    # Beispiel 2: Pipe als Trennzeichen
+    csv_content_pipe = """id|name|value
+1|product_a|19.99
 """
+    print("\n--- Beispiel 2: Pipe-getrennt ---")
+    structure_regex_pipe = build_csv_regex(csv_content_pipe)
+    print(f"Generiertes Regex:\n{structure_regex_pipe}\n")
 
-    # Generator erstellen und Regex generieren
-    csv_regex_builder = CsvRegexGenerator(delimiter=',')
-    structure_regex = csv_regex_builder.generate_regex(csv_content)
+    test_csv_pipe_valid = """id|name|value
+10|test_1|100.1"""
 
-    print(f"Generiertes Regex:\n{structure_regex}\n")
+    test_csv_pipe_invalid_structure = """id|name|value|extra
+10|test_1|100.1|fail"""
 
-    # Eine weitere CSV-Datei zum Testen
-    test_csv_valid = """id,name,value
-10,test_1,100.1
-11,test_2,200
-"""
-
-    test_csv_invalid_structure = """id,name,value
-10,test_1,100.1
-11,test_2,should_be_a_number
-"""
-
-    test_csv_invalid_columns = """id,name
-10,test_1
-"""
-
-    # Validierung
-    print("--- Validierung ---")
-    print(f"Test 1 (Valide): {bool(re.fullmatch(structure_regex, test_csv_valid.strip()))}")
-    print(f"Test 2 (Invalide Daten): {bool(re.fullmatch(structure_regex, test_csv_invalid_structure.strip()))}")
-    print(f"Test 3 (Invalide Spalten): {bool(re.fullmatch(structure_regex, test_csv_invalid_columns.strip()))}")
-
-
-def csv(string: str) -> Pattern[str]:
-    return None
+    print(f"Test 3 (Valide): {bool(re.fullmatch(structure_regex_pipe, test_csv_pipe_valid))}")
+    print(f"Test 4 (Invalide Struktur): {bool(re.fullmatch(structure_regex_pipe, test_csv_pipe_invalid_structure))}")
