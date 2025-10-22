@@ -8,7 +8,7 @@ common_delimiters = [',', ';', '\t', '|', ':']
 
 
 def csv_pattern(string: str) -> Pattern[str]:
-    regex_pattern = build_csv_regex(string)
+    regex_pattern = __build_csv_regex(string)
     return re.compile(regex_pattern)
 
 
@@ -28,7 +28,7 @@ def __infer_column_pattern(column_data: list[str], delimiter: str) -> str:
     return f'[^{re.escape(delimiter)}]*'
 
 
-def build_csv_regex(example_csv_content: str) -> str:
+def __build_csv_regex(example_csv_content: str) -> str:
     """
     Erstellt ein Regex, das die Struktur der übergebenen CSV-Daten abbildet.
     Das Trennzeichen wird automatisch aus der Liste common_delimiters erkannt.
@@ -99,7 +99,7 @@ if __name__ == '__main__':
                             3,product_c,10
                         """
     print("--- Beispiel 1: Komma-getrennt ---")
-    structure_regex_comma = build_csv_regex(csv_content_comma)
+    structure_regex_comma = __build_csv_regex(csv_content_comma)
     print(f"Generiertes Regex:\n{structure_regex_comma}\n")
 
     test_csv_valid = """    
@@ -119,7 +119,7 @@ if __name__ == '__main__':
 1|product_a|19.99
 """
     print("\n--- Beispiel 2: Pipe-getrennt ---")
-    structure_regex_pipe = build_csv_regex(csv_content_pipe)
+    structure_regex_pipe = __build_csv_regex(csv_content_pipe)
     print(f"Generiertes Regex:\n{structure_regex_pipe}\n")
 
     test_csv_pipe_valid = """id|name|value

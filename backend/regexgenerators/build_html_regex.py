@@ -2,10 +2,10 @@ import re
 from re import Pattern
 
 def html_pattern(string: str) -> Pattern[str]:
-    regex_pattern = build_html_regex(string)
+    regex_pattern = __build_html_regex(string)
     return re.compile(regex_pattern, re.DOTALL)
 
-def build_html_regex(example_html: str) -> str:
+def __build_html_regex(example_html: str) -> str:
     """
     Erstellt ein Regex, das die Struktur des übergebenen HTML-Snippets abbildet.
     Funktioniert am besten für einfache, wiederholte Strukturen wie Tabellen oder Listen.
