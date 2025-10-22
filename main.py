@@ -4,6 +4,8 @@ from fastapi import FastAPI, status, Request
 from fastapi.responses import JSONResponse
 import uvicorn
 
+from backend.enums.FileType import FileType
+
 app = FastAPI()
 api_endpoint = "/v1/api/endpoint"
 
@@ -12,7 +14,7 @@ async def root():
     return {"message": "Python API läuft"}
 
 @app.post(api_endpoint + "/match")
-async def match(request: Request):
+async def match(request: Request) -> JSONResponse:
     request_body = await request.json()
     string = request_body.get("text")
     regex = request_body.get("regex")
@@ -24,7 +26,7 @@ async def match(request: Request):
     result_obj = {"value": False, "message": ""}
 
     if regex_pattern is None or string is None or len(string) == 0:
-        result_obj["message"] = "Either the pattern or the string was null"
+        result_obj["message"] = "Error. Either the regex or the text was null"
         return JSONResponse(content=result_obj, status_code=status.HTTP_400_BAD_REQUEST)
 
     result_obj["value"] = logic.match(regex_pattern, string)
@@ -32,14 +34,64 @@ async def match(request: Request):
     return JSONResponse(content=result_obj, status_code=status.HTTP_200_OK)
 
 
+@app.post(api_endpoint + "/generate")
+async def generate_regex(request: Request) -> JSONResponse:
+    request_body = await request.json()
+    string = request_body.get("text")
+    filetype = request_body.get("filetype")
+    ft = FileType.UNSUPPORTED
+    result_obj = {"value": "", "message": ""}
 
-def build_regex(string: str) -> str:
+    if string is None or len(string) == 0 or filetype is None or len(filetype) == 0:
+        result_obj["message"] = "Error. Either the text or the filetype was null"
+        return JSONResponse(content=result_obj, status_code=status.HTTP_400_BAD_REQUEST)
+    elif filetype is not None and len(filetype) > 0:
+        bad_type = False
+        try:
+            ft = FileType[filetype]
+            if ft == FileType.UNSUPPORTED:
+                bad_type = True
+        except Exception:
+            bad_type = True
 
-    return logic.build_regex(string)
+        if bad_type:
+            result_obj["message"] = "Error. File type is not supported"
+            return JSONResponse(content=result_obj, status_code=status.HTTP_400_BAD_REQUEST)
 
-def detect_type_text(string: str, is_file: bool, is_ml: bool) -> str:
-    return logic.detect_filetype(string, is_file, is_ml).name
+    try:
+        result = logic.generate_regex(filetype=ft, string=string)
+        result_obj["value"] = result
+        result_obj["message"] = "Successfully generated regex pattern"
+        return JSONResponse(content=result_obj, status_code=status.HTTP_200_OK)
+    except Exception:
+        result_obj["message"] = "Error. File type is not supported"
+        return JSONResponse(content=result_obj, status_code=status.HTTP_400_BAD_REQUEST)
 
+@app.post(api_endpoint + "/detectfiletype")
+async def detect_type_text(request: Request) -> JSONResponse:
+    request_body = await request.json()
+    string = request_body.get("text")
+    is_ml = request_body.get("ml")
+    result_obj = {"value": "", "message": ""}
+
+    if string is None or len(string) == 0 or is_ml is None or len(is_ml) == 0:
+        result_obj["message"] = "Error. Either the text or ml is null"
+        return JSONResponse(content=result_obj, status_code=status.HTTP_400_BAD_REQUEST)
+
+    if not re.match('^[tT][rR][uU][eE]|[fF][aA][lL][sS][eE]$', is_ml):
+        result_obj["message"] = "Error. ml has to be true or false"
+        return JSONResponse(content=result_obj, status_code=status.HTTP_400_BAD_REQUEST)
+
+    is_ml_bool = is_ml.lower() == "true"
+    ft: type(FileType) = logic.detect_filetype(string=string, is_file=False, is_ml=is_ml_bool)
+
+    if ft == FileType.UNSUPPORTED:
+        result_obj["message"] = "Error. The file type is not supported"
+        return JSONResponse(content=result_obj, status_code=status.HTTP_400_BAD_REQUEST)
+
+    result_obj["message"] = "Successfully detected file type"
+    result_obj["value"] = FileType(ft).name
+    return JSONResponse(content=result_obj, status_code=status.HTTP_200_OK)
 
 def start_api():
     print("App läuft auf 127.0.0.1:50123")

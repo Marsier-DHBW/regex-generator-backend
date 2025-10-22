@@ -73,3 +73,85 @@ Diese Einschränkungen stellen sicher, dass:
 4. Der **praktische Nutzen** für weit verbreitete Formate wie CSV, JSON, XML und HTML gewährleistet ist.
 
 ---
+
+
+## 4. API Dokumentation
+### Endpunkte
+
+Die Base URL lautet: `/v1/api/endpoint/match`.
+Bei standalone ausführung des Python-Projekts ist die API über den Port `50123` aufzurufen.
+
+1. /match
+2. /generate
+3. /detecttype
+
+### 1. Match-Endpunkt
+Überprüft ob der übergebene text dem regex pattern entspricht.
+
+- **Resource**: `/match`
+- **Methode:** POST
+- **Request Body:** JSON
+- **Request Schema:** 
+```
+{
+    "regex": "string",
+    "text": string""
+}
+```
+- **Response Body:** JSON
+- **Response Schema:** 
+```
+{
+    "value": true|false,
+    "message": "string"
+}
+```
+- **Response Codes:** 200, 400
+<br>
+<br>
+### 2. Generate-Endpunkt
+Generiert einen Regex basierend auf dem übergebenen text.
+
+- **Resource**: `/generate`
+- **Methode:** POST
+- **Request Body:** JSON
+- **Request Schema:** 
+```
+{
+    "filetype": "JSON|XML|HTML|CSV",
+    "text": "string"
+}
+```
+- **Response Body:** JSON
+- **Response Schema:** 
+```
+{
+    "value": "string",
+    "message": "string"
+}
+```
+- **Response Codes:** 200, 400
+<br>
+<br>
+### 3. DetectFileType-Endpunkt
+Generiert einen Regex basierend auf dem übergebenen text.
+
+- **Resource**: `/detectfiletype`
+- **Methode:** POST
+- **Request Body:** JSON
+- **Request Schema:** 
+```
+{
+    "text": "string",
+    "ml": true|false
+}
+```
+- **Response Body:** JSON
+- **Response Schema:** 
+```
+{
+    "value": "JSON|XML|HTML|CSV",
+    "message": "string"
+}
+```
+- **Response Codes:** 200, 400
