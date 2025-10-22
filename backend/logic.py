@@ -9,11 +9,11 @@ from backend.enums.FileType import FileType as ft
 from backend.regexgenerators import build_json_regex, build_xml_regex, build_html_regex, build_csv_regex
 
 
-def match(pattern: str, string: str) -> bool:
-    if string is None:
+def match(pattern: re.Pattern[str], string: str) -> bool:
+    if string is None or pattern is None:
         return False
     else:
-        return bool(re.match(pattern=pattern, string=string))
+        return bool(pattern.match(string))
 
 
 def build_regex(filetype: ft, string: str) -> str:
