@@ -10,7 +10,7 @@ from backend.regexgenerators import build_json_regex, build_xml_regex, build_htm
 
 
 def match(pattern: re.Pattern[str], string: str) -> bool:
-    if string is None or pattern is None:
+    if string is None or len(string) == 0 or pattern is None:
         return False
     else:
         return bool(pattern.match(string))
