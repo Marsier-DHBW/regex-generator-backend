@@ -1,5 +1,5 @@
 from re import Pattern
 
 
-def xml(string: str) -> Pattern[str]:
+def xml_pattern(string: str) -> Pattern[str]:
     return None

@@ -1,5 +1,5 @@
 from re import Pattern
 
 
-def html(string: str) -> Pattern[str]:
+def html_pattern(string: str) -> Pattern[str]:
     return None

@@ -3,7 +3,7 @@ import re
 from re import Pattern
 
 
-def json(string: str) -> Pattern[str]:
+def json_pattern(string: str) -> Pattern[str]:
     regex_pattern = "^" + __build_json_regex_recursive(data=string) + "$"
     return re.compile(regex_pattern)
 
