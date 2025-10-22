@@ -68,7 +68,7 @@ def generate(rows=5000):
         html_str = generate_nested_html("html", max_depth=random.choice([2, 3]))
         data.append((html_str, 3))  # Label 3 = HTML
 
-    csv_path = "html_dataset.csv"
+    csv_path = "../synth_datasets/html_dataset.csv"
     with open(csv_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f, delimiter=';')
         writer.writerow(["text", "label"])

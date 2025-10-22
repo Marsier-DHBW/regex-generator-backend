@@ -44,7 +44,7 @@ def generate(rows=5000):
         json_str = json.dumps(json_obj)
         data.append((json_str, 0))  # Label 0 = JSON
 
-    csv_path = "json_dataset.csv"
+    csv_path = "../synth_datasets/json_dataset.csv"
     with open(csv_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f, delimiter=';')
         writer.writerow(["text", "label"])  # Header
