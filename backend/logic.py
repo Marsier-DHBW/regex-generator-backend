@@ -1,11 +1,11 @@
-import re
-from backend.enums.FileType import FileType as ft
-import ml.transformer as transformer
-import json
 import csv
+import json
+import re
 from io import StringIO
 from xml.etree import ElementTree as ET
 
+import ml.transformer as transformer
+from backend.enums.FileType import FileType as ft
 from backend.regexgenerators import build_json_regex, build_xml_regex, build_html_regex, build_csv_regex
 
 
@@ -20,13 +20,13 @@ def build_regex(filetype: ft, string: str) -> str:
     regex: re.Pattern[str]
     match filetype:
         case ft.JSON:
-            regex = build_json_regex.json(string)
+            regex = build_json_regex.json_pattern(string)
         case ft.XML:
-            regex = build_xml_regex.xml(string)
+            regex = build_xml_regex.xml_pattern(string)
         case ft.HTML:
-            regex = build_html_regex.html(string)
+            regex = build_html_regex.html_pattern(string)
         case ft.CSV:
-            regex = build_csv_regex.csv(string)
+            regex = build_csv_regex.csv_pattern(string)
         case _:
             raise Exception(f"Unsupported file type: {filetype}")
     return str(regex.pattern)

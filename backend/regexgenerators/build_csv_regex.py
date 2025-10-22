@@ -1,12 +1,18 @@
-from re import Pattern
-import re
 import csv
 import io
+import re
+from re import Pattern
 
 # Berücksichtigte Trennzeichen
 common_delimiters = [',', ';', '\t', '|', ':']
 
-def _infer_column_pattern(column_data: list[str], delimiter: str) -> str:
+
+def csv_pattern(string: str) -> Pattern[str]:
+    regex_pattern = build_csv_regex(string)
+    return re.compile(regex_pattern)
+
+
+def __infer_column_pattern(column_data: list[str], delimiter: str) -> str:
     """
     Leitet aus einer Liste von Spaltenwerten ein passendes Regex-Pattern ab.
     """
@@ -20,6 +26,7 @@ def _infer_column_pattern(column_data: list[str], delimiter: str) -> str:
 
     # Standard-Pattern für allgemeinen Text (alles außer dem Trennzeichen)
     return f'[^{re.escape(delimiter)}]*'
+
 
 def build_csv_regex(example_csv_content: str) -> Pattern[str]:
     """
@@ -45,9 +52,9 @@ def build_csv_regex(example_csv_content: str) -> Pattern[str]:
             counts = {d: first_line.count(d) for d in common_delimiters}
             delimiter = max(counts, key=counts.get)
             if counts[delimiter] == 0:
-                delimiter = ',' # Standard-Trennzeichen
+                delimiter = ','  # Standard-Trennzeichen
         except IndexError:
-            return "" # Leerer Inhalt
+            return ""  # Leerer Inhalt
 
     reader = csv.reader(io.StringIO(example_csv_content), delimiter=delimiter)
 
@@ -57,7 +64,7 @@ def build_csv_regex(example_csv_content: str) -> Pattern[str]:
         num_columns = len(header)
         data_rows = [row for row in reader if row and len(row) == num_columns]
     except StopIteration:
-        return "" # Leere CSV
+        return ""  # Leere CSV
 
     header_pattern = re.escape(delimiter).join([re.escape(h) for h in header])
     line_ending_pattern = r'(?:\r?\n)'
@@ -82,6 +89,7 @@ def build_csv_regex(example_csv_content: str) -> Pattern[str]:
 
     return final_regex
 
+
 # Beispiel für die Verwendung
 if __name__ == '__main__':
     # Beispiel 1: Komma als Trennzeichen
@@ -99,7 +107,6 @@ if __name__ == '__main__':
                         10,test_1,100.1
                         11,test_2,200
                     """
-
 
     test_csv_invalid_data = """id,name,value
 10,test_1,not_a_number"""
