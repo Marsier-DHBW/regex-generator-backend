@@ -9,14 +9,14 @@ from backend.enums.FileType import FileType as ft
 from backend.regexgenerators import build_json_regex, build_xml_regex, build_html_regex, build_csv_regex
 
 
-def match(pattern: str, string: str) -> bool:
-    if string is None:
+def match(pattern: re.Pattern[str], string: str) -> bool:
+    if string is None or len(string) == 0 or pattern is None:
         return False
     else:
-        return bool(re.match(pattern=pattern, string=string))
+        return bool(pattern.match(string))
 
 
-def build_regex(filetype: ft, string: str) -> str:
+def generate_regex(filetype: ft, string: str) -> str:
     regex: re.Pattern[str]
     match filetype:
         case ft.JSON:
@@ -70,9 +70,6 @@ def detect_filetype(string: str, is_file: bool, is_ml: bool) -> type(ft):
             return ft.UNSUPPORTED
 
     return filetype
-
-
-# ---------- Hilfsfunktionen ----------
 
 def is_json(data_string: str) -> bool:
     """Prüft, ob der String gültiges JSON ist."""
