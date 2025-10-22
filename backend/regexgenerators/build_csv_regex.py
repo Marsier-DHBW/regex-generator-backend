@@ -28,7 +28,7 @@ def __infer_column_pattern(column_data: list[str], delimiter: str) -> str:
     return f'[^{re.escape(delimiter)}]*'
 
 
-def build_csv_regex(example_csv_content: str) -> Pattern[str]:
+def build_csv_regex(example_csv_content: str) -> str:
     """
     Erstellt ein Regex, das die Struktur der übergebenen CSV-Daten abbildet.
     Das Trennzeichen wird automatisch aus der Liste common_delimiters erkannt.
@@ -78,7 +78,7 @@ def build_csv_regex(example_csv_content: str) -> Pattern[str]:
         for i, cell in enumerate(row):
             columns_data[i].append(cell)
 
-    column_patterns = [_infer_column_pattern(col, delimiter) for col in columns_data]
+    column_patterns = [__infer_column_pattern(col, delimiter) for col in columns_data]
     row_pattern = re.escape(delimiter).join(column_patterns)
 
     # Finales Regex:
