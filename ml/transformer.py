@@ -79,8 +79,12 @@ def __train(tokenized_chunked_dataset: Dataset):
         eval_dataset=train_test['test'],
         tokenizer=tokenizer
     )
-    print(f"GPU: {torch.cuda.current_device()}")
-    print(f"GPU: {torch.cuda.is_available()}")
+    try:
+        print(f"GPU: {torch.cuda.is_available()}")
+        print(f"GPU: {torch.cuda.current_device()}")
+    except Exception as _:
+        print("Training with CPU. Please enable cuda support for acceleration and install the requirements_nvidia_cuda_support.txt")
+
     trainer.train()
     trainer.save_model(trainer_path)
     tokenizer.save_pretrained(trainer_path)

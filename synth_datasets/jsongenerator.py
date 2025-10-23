@@ -50,4 +50,4 @@ def generate(rows=5000):
         writer.writerow(["text", "label"])  # Header
         writer.writerows(data)
 
-    print(f"Datei '{csv_path}' erfolgreich erstellt ({len(data)}) Beispiele.")
+    print(f"Datei '{csv_path}' erfolgreich erstellt ({len(data)} Beispiele).")
