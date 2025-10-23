@@ -1,4 +1,6 @@
 import re
+
+import ml.transformer
 from backend import logic
 from fastapi import FastAPI, status, Request
 from fastapi.responses import JSONResponse
@@ -95,4 +97,5 @@ def start_api():
     uvicorn.run(app, host="127.0.0.1", port=50123)
 
 if __name__ == '__main__':
+    #ml.transformer.prepare_model()
     start_api()

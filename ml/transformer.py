@@ -134,7 +134,7 @@ def prepare_model():
         tokenizer = DistilBertTokenizer.from_pretrained(trainer_path)
         model = DistilBertForSequenceClassification.from_pretrained(trainer_path, num_labels=4)
 
-    print("Done. Model in eval mode")
+    print("Preperation Done. Model in eval mode")
     model.eval()
 
 # api #############
