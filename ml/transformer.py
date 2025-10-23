@@ -83,7 +83,7 @@ def __train(tokenized_chunked_dataset: Dataset):
         print(f"GPU: {torch.cuda.is_available()}")
         print(f"GPU: {torch.cuda.current_device()}")
     except Exception as _:
-        print("Training with CPU. Please enable cuda support for acceleration and install the requirements_nvidia_cuda_support.txt")
+        print("Training with CPU. Please enable cuda support for acceleration and install the requirements_nvidia_cuda_support.txt via \n pip install --upgrade -r requirements_nvidia_cuda_support.txt")
 
     trainer.train()
     trainer.save_model(trainer_path)
@@ -138,13 +138,15 @@ def prepare_model():
     model.eval()
 
 # api #############
-def predict(text: str) -> tuple[str, list]:
+def predict(text: str) -> tuple[str, float]:
     """Make a prediction. The model has to be prepared before"""
     label, probs = __predict(text=text)
-    return str(ft(label).name), probs
+    t = str(ft(label).name)
+    prob = probs[label]
+    return t, prob
 
 # api #############
-def prepare_and_predict(text: str) -> tuple[str, list]:
+def prepare_and_predict(text: str) -> tuple[str, float]:
     """Prepare the model and make a prediction"""
     prepare_model()
     return predict(text)

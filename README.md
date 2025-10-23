@@ -79,12 +79,12 @@ Diese Einschränkungen stellen sicher, dass:
 ### Endpunkte
 
 Die Base URL lautet: `/v1/api/endpoint/` bzw. https://regex-generator-backend.onrender.com/v1/api/endpoint.  
-Bei standalone ausführung des Python-Projekts ist die API über den Port `50123` aufzurufen.  
+Bei lokaler standalone ausführung des Python-Projekts ist die API über den Port `50123` aufzurufen.  
 
 
 1. /match
 2. /generate
-3. /detecttype
+3. /detectfiletype
   
 ### 1. Match-Endpunkt
 Überprüft ob der übergebene text dem regex pattern entspricht.
@@ -96,14 +96,14 @@ Bei standalone ausführung des Python-Projekts ist die API über den Port `50123
 ```
 {
     "regex": "string",
-    "text": string""
+    "text": "string""
 }
 ```
 - **Response Body:** JSON
 - **Response Schema:** 
 ```
 {
-    "value": true|false,
+    "value": boolean,
     "message": "string"
 }
 ```
@@ -146,7 +146,7 @@ Erkennt den Dateityp basierend auf dem übergebenen text. Dabei können zwei Ans
 ```
 {
     "text": "string",
-    "ml": true|false
+    "ml": boolean
 }
 ```
 - **Response Body:** JSON
@@ -154,6 +154,7 @@ Erkennt den Dateityp basierend auf dem übergebenen text. Dabei können zwei Ans
 ```
 {
     "value": "JSON|XML|HTML|CSV|UNSUPPORTED",
+    "probability": number
     "message": "string"
 }
 ```
