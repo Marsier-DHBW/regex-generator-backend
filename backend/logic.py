@@ -33,44 +33,39 @@ def generate_regex(filetype: ft, string: str) -> str:
     return str(regex.pattern)
 
 
-def detect_filetype(string: str, is_file: bool, is_ml: bool) -> type(ft):
+def detect_filetype(string: str, is_file: bool, is_ml: bool) -> tuple[type(ft), float]:
     """
     Erkennt den Dateityp eines Strings anhand seines Inhalts.
     Kann optional ML-Vorhersage verwenden.
     """
     filetype: type(ft) = ft.UNSUPPORTED
+    prob = -1.0
     if is_file:
         # Platzhalter für File-Erkennung (z. B. MIME-Typ oder Dateiendung)
         pass
     else:
         if is_ml:
-            pred, probs = transformer.predict(string)
+            pred, probability = transformer.predict(string)
             filetype = ft[pred]
+            prob = probability
         else:
             data_string = string.strip()
             if not data_string:
-                return ft.UNSUPPORTED
-
+                filetype = ft.UNSUPPORTED
             # 1. JSON
-            if is_json(data_string):
-                return ft.JSON
-
+            elif is_json(data_string):
+                filetype = ft.JSON
             # 2. HTML
-            if is_html(data_string):
-                return ft.HTML
-
+            elif is_html(data_string):
+                filetype = ft.HTML
             # 3. XML
-            if is_xml(data_string):
-                return ft.XML
-
+            elif is_xml(data_string):
+                filetype = ft.XML
             # 4. CSV
-            if is_csv(data_string):
-                return ft.CSV
+            elif is_csv(data_string):
+                filetype = ft.CSV
 
-            # 5. Fallback
-            return ft.UNSUPPORTED
-
-    return filetype
+    return filetype, prob
 
 def is_json(data_string: str) -> bool:
     """Prüft, ob der String gültiges JSON ist."""

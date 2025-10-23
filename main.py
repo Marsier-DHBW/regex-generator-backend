@@ -71,25 +71,22 @@ async def detect_type_text(request: Request) -> JSONResponse:
     request_body = await request.json()
     string = request_body.get("text")
     is_ml = request_body.get("ml")
-    result_obj = {"value": "", "message": ""}
+    result_obj = {"value": "", "probability": -1.0, "message": ""}
 
-    if string is None or len(string) == 0 or is_ml is None or len(is_ml) == 0:
-        result_obj["message"] = "Error. Either the text or ml is null"
+    if string is None or len(string) == 0 or is_ml is None or type(is_ml) is not bool:
+        result_obj["message"] = "Error. Either the text or ml is null/not a boolean"
         return JSONResponse(content=result_obj, status_code=status.HTTP_400_BAD_REQUEST)
 
-    if not re.match('^[tT][rR][uU][eE]|[fF][aA][lL][sS][eE]$', is_ml):
-        result_obj["message"] = "Error. ml has to be true or false"
-        return JSONResponse(content=result_obj, status_code=status.HTTP_400_BAD_REQUEST)
-
-    is_ml_bool = is_ml.lower() == "true"
     ft: type(FileType)
+    prob: float
     try:
-        ft = logic.detect_filetype(string=string, is_file=False, is_ml=is_ml_bool)
+        ft, prob = logic.detect_filetype(string=string, is_file=False, is_ml=bool(is_ml))
     except Exception as e:
-        result_obj["message"] = f"Error. The file type is not supported. Message: {str(e)}"
+        result_obj["message"] = f"Error. Message: {str(e)}"
         return JSONResponse(content=result_obj, status_code=status.HTTP_400_BAD_REQUEST)
 
     result_obj["message"] = "Successfully detected file type"
+    result_obj["probability"] = round(prob, 2)
     result_obj["value"] = FileType(ft).name
     return JSONResponse(content=result_obj, status_code=status.HTTP_200_OK)
 
