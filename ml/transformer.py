@@ -8,7 +8,7 @@ from backend.enums.FileType import FileType as ft
 from datasets import Dataset
 import pandas as pd
 from pathlib import Path
-
+from huggingface_hub import HfApi
 from synth_datasets.dataset_central_generator import generate_datasets
 
 
@@ -60,6 +60,8 @@ def __tokenize_dataset(chunked_dataset: Dataset, tokenize_function: callable):
 
 # Modell laden und Trainer konfigurieren ###########
 def __train(tokenized_chunked_dataset: Dataset):
+    global model
+    global tokenizer
     train_test = tokenized_chunked_dataset.train_test_split(test_size=0.2)
     training_args = TrainingArguments(
         output_dir=path + 'output',
@@ -86,8 +88,16 @@ def __train(tokenized_chunked_dataset: Dataset):
         print("Training with CPU. Please enable cuda support for acceleration and install the requirements_nvidia_cuda_support.txt via \n pip install --upgrade -r requirements_nvidia_cuda_support.txt")
 
     trainer.train()
-    trainer.save_model(trainer_path)
-    tokenizer.save_pretrained(trainer_path)
+    __save_model_to_hugging_face()
+
+def __save_model_to_hugging_face():
+    global model
+    global tokenizer
+    global repo_id
+
+    model.push_to_hub(repo_id=repo_id, commit_message="Upload of distilBERT model")
+    tokenizer.push_to_hub(repo_id=repo_id)
+    print(f"Saved model and tokenizer to hugging face repo \"{repo_id}\"")
 
 def __train_model_with_example_data():
     ex_dataset = __load_datasets()
@@ -110,6 +120,7 @@ def __predict(text: str):
 path = '../ml_results/'
 trainer_path = path + 'distilbert_trained'
 data_path = '../synth_datasets'
+repo_id = 'SumoOW/distilbert-base-uncased'
 tokenizer: DistilBertTokenizer
 model: SpecificPreTrainedModelType
 
@@ -119,23 +130,38 @@ def prepare_model():
     global model
 
     data_rows = 80000
-    if not os.path.isdir(path):
-        if not any(fname.endswith('.csv') for fname in os.listdir(data_path)):
-            print(f"Creating {data_rows} data rows")
+    if __is_hf_model_available():
+        print(f"Loading pre-trained model from hugging face repo \"{repo_id}\"")
+        tokenizer = DistilBertTokenizer.from_pretrained(repo_id)
+        model = DistilBertForSequenceClassification.from_pretrained(repo_id, num_labels=4)
+    else:
+        print(f"No pre-trained hugging face model from repo \"{repo_id}\" found")
+        if not __is_datasets_created():
+            print(f"No Datasets found. Creating {data_rows} data rows")
             generate_datasets(rows_total=data_rows)
-            print("Created data.")
+            print("Created data")
 
         print("Beginning training with data")
         tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
         model = DistilBertForSequenceClassification.from_pretrained('distilbert-base-uncased', num_labels=4)
         __train_model_with_example_data()
-    else:
-        print("Loading pre-trained model from saves")
-        tokenizer = DistilBertTokenizer.from_pretrained(trainer_path)
-        model = DistilBertForSequenceClassification.from_pretrained(trainer_path, num_labels=4)
 
     print("Preperation Done. Model in eval mode")
     model.eval()
+
+def __is_datasets_created() -> bool:
+    return sum(fname.endswith('.csv') for fname in os.listdir(data_path)) == 4
+
+def __is_hf_model_available() -> bool:
+    global repo_id
+    hf_api = HfApi()
+
+    try:
+        repo_info = hf_api.repo_info(repo_id)
+        print(f"Model \"{repo_id}\" is available. Last modified: {repo_info.last_modified}")
+        return True
+    except Exception as e:
+        return False
 
 # api #############
 def predict(text: str) -> tuple[str, float]:
