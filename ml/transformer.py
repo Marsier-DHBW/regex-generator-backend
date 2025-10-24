@@ -146,8 +146,8 @@ def prepare_model():
         model = DistilBertForSequenceClassification.from_pretrained('distilbert-base-uncased', num_labels=4)
         __train_model_with_example_data()
 
-    print("Preperation Done. Model in eval mode")
     model.eval()
+    print("Preperation Done. Model in eval mode")
 
 def __is_datasets_created() -> bool:
     return sum(fname.endswith('.csv') for fname in os.listdir(data_path)) == 4
