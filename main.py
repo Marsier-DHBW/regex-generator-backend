@@ -1,15 +1,17 @@
 import re
-
+import os
 import ml.transformer
 from backend import logic
 from fastapi import FastAPI, status, Request
 from fastapi.responses import JSONResponse
 import uvicorn
-
 from backend.enums.FileType import FileType
 
 app = FastAPI()
-api_endpoint = "/v1/api/endpoint"
+
+url = str(os.environ.get("Backend.API.URL"))
+port = int(os.environ.get("Backend.API.PORT"))
+api_endpoint = str(os.environ.get("Backend.API.ENDPOINT"))
 
 @app.get(api_endpoint)
 async def root():
@@ -91,8 +93,8 @@ async def detect_type_text(request: Request) -> JSONResponse:
     return JSONResponse(content=result_obj, status_code=status.HTTP_200_OK)
 
 def start_api():
-    print("App läuft auf 127.0.0.1:50123")
-    uvicorn.run(app, host="127.0.0.1", port=50123)
+    print(f"App läuft auf {url}:{port}")
+    uvicorn.run(app, host=url, port=port)
 
 if __name__ == '__main__':
     ml.transformer.prepare_model()
