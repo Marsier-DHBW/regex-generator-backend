@@ -9,9 +9,9 @@ from backend.enums.FileType import FileType
 
 app = FastAPI()
 
-url = str(os.environ.get("Backend.API.URL"))
-port = int(os.environ.get("Backend.API.PORT"))
-api_endpoint = str(os.environ.get("Backend.API.ENDPOINT"))
+url = str(os.environ.get("URL"))
+port = int(os.environ.get("PORT"))
+api_endpoint = str(os.environ.get("ENDPOINT"))
 
 @app.get(api_endpoint)
 async def root():
