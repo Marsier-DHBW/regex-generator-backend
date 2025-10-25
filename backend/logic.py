@@ -33,39 +33,36 @@ def generate_regex(filetype: ft, string: str) -> str:
     return str(regex.pattern)
 
 
-def detect_filetype(string: str, is_file: bool, is_ml: bool) -> tuple[type(ft), float]:
+def detect_filetype(string: str, is_ml: bool) -> dict:
     """
     Erkennt den Dateityp eines Strings anhand seines Inhalts.
     Kann optional ML-Vorhersage verwenden.
     """
     filetype: type(ft) = ft.UNSUPPORTED
-    prob = -1.0
-    if is_file:
-        # Platzhalter für File-Erkennung (z. B. MIME-Typ oder Dateiendung)
-        pass
-    else:
-        if is_ml:
-            pred, probability = transformer.predict(string)
-            filetype = ft[pred]
-            prob = probability
-        else:
-            data_string = string.strip()
-            if not data_string:
-                filetype = ft.UNSUPPORTED
-            # 1. JSON
-            elif is_json(data_string):
-                filetype = ft.JSON
-            # 2. HTML
-            elif is_html(data_string):
-                filetype = ft.HTML
-            # 3. XML
-            elif is_xml(data_string):
-                filetype = ft.XML
-            # 4. CSV
-            elif is_csv(data_string):
-                filetype = ft.CSV
+    probs: dict = {"JSON":0.0, "XML":0.0, "HTML":0.0, "CSV":0.0, "UNSUPPORTED":0.0}
 
-    return filetype, prob
+    if is_ml:
+        probs = transformer.predict(string)
+        return probs
+    else:
+        data_string = string.strip()
+        if not data_string:
+            filetype = ft.UNSUPPORTED
+        # 1. JSON
+        elif is_json(data_string):
+            filetype = ft.JSON
+        # 2. HTML
+        elif is_html(data_string):
+            filetype = ft.HTML
+        # 3. XML
+        elif is_xml(data_string):
+            filetype = ft.XML
+        # 4. CSV
+        elif is_csv(data_string):
+            filetype = ft.CSV
+
+        probs[filetype.name] = 1.0
+        return probs
 
 def is_json(data_string: str) -> bool:
     """Prüft, ob der String gültiges JSON ist."""
@@ -145,8 +142,3 @@ def is_csv(data_string: str) -> bool:
 
     except csv.Error:
         return False
-
-
-if __name__ == '__main__':
-    ml.transformer.prepare_model()
-    print(detect_filetype("<root></root>", False, True))

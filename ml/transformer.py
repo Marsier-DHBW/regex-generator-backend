@@ -1,6 +1,4 @@
 from builtins import callable
-
-from numpy import signedinteger
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification, TrainingArguments, Trainer
 import numpy as np
 import torch
@@ -114,8 +112,7 @@ def __predict(text: str):
     outputs = model(**inputs)
     probs = torch.nn.functional.softmax(outputs.logits, dim=-1).detach().cpu().numpy()
     avg_probs = np.mean(probs, axis=0)  # Durchschnitt über Chunks
-    pred_label = np.argmax(avg_probs)
-    return pred_label, avg_probs
+    return avg_probs
 
 
 path = '../ml_results/'
@@ -165,16 +162,17 @@ def __is_hf_model_available() -> bool:
         return False
 
 # api #############
-def predict(text: str) -> tuple[str, float]:
+def predict(text: str) -> dict:
     """Make a prediction. The model has to be prepared before"""
-    label, probs = __predict(text=text)
-    t = str(ft(label).name)
-    prob_best = float(probs[label])
-    prob_second = float(probs[label])
-    return t, prob
+    probs = __predict(text=text)
+    labels = np.arange(len(probs))
+    probs = {int(idx): float(val) for idx, val in zip(labels, probs)}
+    mapped_probs = {ft(key).name: round(val, 2) for key, val in probs.items()}
+    mapped_probs["UNSUPPORTED"] = 0.0
+    return mapped_probs
 
 # api #############
-def prepare_and_predict(text: str) -> tuple[str, float]:
+def prepare_and_predict(text: str) -> dict:
     """Prepare the model and make a prediction"""
     prepare_model()
     return predict(text)

@@ -73,24 +73,21 @@ async def detect_type_text(request: Request) -> JSONResponse:
     request_body = await request.json()
     string = request_body.get("text")
     is_ml = request_body.get("ml")
-    result_obj = {"value": "", "probability": -1.0, "message": ""}
+    result_obj = {"value": "", "message": ""}
 
     if string is None or len(string) == 0 or is_ml is None or type(is_ml) is not bool:
         result_obj["message"] = "Error. Either the text or ml is null/not a boolean"
         return JSONResponse(content=result_obj, status_code=status.HTTP_400_BAD_REQUEST)
 
-    ft: type(FileType)
-    prob: float
+    probs: dict
     try:
-        ft, prob = logic.detect_filetype(string=string, is_file=False, is_ml=bool(is_ml))
+        probs = logic.detect_filetype(string=string, is_ml=bool(is_ml))
     except Exception as e:
-        print(e)
         result_obj["message"] = f"Error. Message: {str(e)}"
         return JSONResponse(content=result_obj, status_code=status.HTTP_400_BAD_REQUEST)
 
     result_obj["message"] = "Successfully detected file type"
-    result_obj["probability"] = round(prob, 2)
-    result_obj["value"] = FileType(ft).name
+    result_obj["value"] = probs
     return JSONResponse(content=result_obj, status_code=status.HTTP_200_OK)
 
 def start_api():
@@ -99,4 +96,5 @@ def start_api():
 
 if __name__ == '__main__':
     ml.transformer.prepare_model()
+    print(f"Testing with string: \"<root></root>\": {str(ml.transformer.predict("<root></root>"))}")
     start_api()

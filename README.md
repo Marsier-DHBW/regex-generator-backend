@@ -153,8 +153,13 @@ Erkennt den Dateityp basierend auf dem übergebenen text. Dabei können zwei Ans
 - **Response Schema:** 
 ```
 {
-    "value": "JSON|XML|HTML|CSV|UNSUPPORTED",
-    "probability": number
+    "value": {
+        "JSON": number,
+        "XML": number,
+        "CSV": number,
+        "HTML": number,
+        "UNSUPPORTED": number
+    },
     "message": "string"
 }
 ```
