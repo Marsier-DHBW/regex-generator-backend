@@ -11,3 +11,5 @@ pillow>=11.0.0
 transformers==4.57.1
 uvicorn==0.38.0
 accelerate==1.11.0
+protobuf==6.33.0
+huggingface_hub[hf_xet]==0.35.3

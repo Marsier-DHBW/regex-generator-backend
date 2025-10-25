@@ -148,4 +148,5 @@ def is_csv(data_string: str) -> bool:
 
 
 if __name__ == '__main__':
+    ml.transformer.prepare_model()
     print(detect_filetype("<root></root>", False, True))

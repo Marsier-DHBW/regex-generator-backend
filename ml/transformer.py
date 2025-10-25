@@ -1,4 +1,6 @@
 from builtins import callable
+
+from numpy import signedinteger
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification, TrainingArguments, Trainer
 import numpy as np
 import torch
@@ -111,7 +113,6 @@ def __predict(text: str):
     inputs = tokenizer(chunks, padding=True, truncation=True, max_length=512, return_tensors='pt')
     outputs = model(**inputs)
     probs = torch.nn.functional.softmax(outputs.logits, dim=-1).detach().cpu().numpy()
-    print(probs)
     avg_probs = np.mean(probs, axis=0)  # Durchschnitt über Chunks
     pred_label = np.argmax(avg_probs)
     return pred_label, avg_probs
@@ -168,7 +169,8 @@ def predict(text: str) -> tuple[str, float]:
     """Make a prediction. The model has to be prepared before"""
     label, probs = __predict(text=text)
     t = str(ft(label).name)
-    prob = probs[label]
+    prob_best = float(probs[label])
+    prob_second = float(probs[label])
     return t, prob
 
 # api #############

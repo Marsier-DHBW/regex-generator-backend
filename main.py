@@ -84,6 +84,7 @@ async def detect_type_text(request: Request) -> JSONResponse:
     try:
         ft, prob = logic.detect_filetype(string=string, is_file=False, is_ml=bool(is_ml))
     except Exception as e:
+        print(e)
         result_obj["message"] = f"Error. Message: {str(e)}"
         return JSONResponse(content=result_obj, status_code=status.HTTP_400_BAD_REQUEST)
 
@@ -97,5 +98,5 @@ def start_api():
     uvicorn.run(app, host="127.0.0.1", port=50123)
 
 if __name__ == '__main__':
-    #ml.transformer.prepare_model()
+    ml.transformer.prepare_model()
     start_api()
