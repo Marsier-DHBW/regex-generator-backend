@@ -1,6 +1,4 @@
 torch==2.7.1
-torchvision==0.22.1
-torchaudio==2.7.1
 datasets==4.2.0
 fastapi==0.119.1
 numpy==2.3.4

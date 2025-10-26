@@ -1,5 +1,5 @@
 # Basis-Image mit Python
-FROM python:3.12.3
+FROM python:3.12.12-slim-trixie
 WORKDIR /app
 ENV URL="0.0.0.0"
 ENV PORT=8000
