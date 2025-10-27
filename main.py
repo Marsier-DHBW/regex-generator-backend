@@ -4,10 +4,22 @@ import ml.transformer
 from backend import logic
 from fastapi import FastAPI, status, Request
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from backend.enums.FileType import FileType
 
 app = FastAPI()
+origins = [
+    "http://localhost:4200"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,          # wer darf zugreifen
+    allow_credentials=True,         # Cookies/Headers weitergeben
+    allow_methods=["*"],            # welche HTTP-Methoden erlaubt sind (GET, POST, etc.)
+    allow_headers=["*"],            # welche Header erlaubt sind
+)
 
 url = str(os.environ.get("URL"))
 port = int(os.environ.get("PORT"))
