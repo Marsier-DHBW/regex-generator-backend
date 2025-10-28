@@ -21,9 +21,9 @@ app.add_middleware(
     allow_headers=["*"],            # welche Header erlaubt sind
 )
 
-url = str(os.environ.get("URL"))
-port = int(os.environ.get("PORT"))
-api_endpoint = str(os.environ.get("ENDPOINT"))
+url = str(os.environ.get("URL", "0.0.0.0"))
+port = int(os.environ.get("PORT", "8000"))
+api_endpoint = str(os.environ.get("ENDPOINT", "/v1/api/endpoint"))
 
 @app.get(api_endpoint)
 async def root():
