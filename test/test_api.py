@@ -228,21 +228,69 @@ class TestDetectFiletype:
     # Die ML-Mock-Tests sind im Original bereits gut und werden hier ausgelassen.
 
 # ============================================================
-# Cross-Type Edgecase Tests (Beibehalten aus dem Original)
+# Tests für logic.generate_regex - Extreme Edge Cases (Tiefe & Strenge)
 # ============================================================
 
-class TestCrossType:
-    def test_mixed_content_xml_json(self):
-        text = '<root>{"key": "value"}</root>'
-        result = logic.detect_filetype(string=text, is_ml=False)
-        assert isinstance(result, dict)
+class TestGenerateRegexExtremeEdgeCases:
 
-    def test_csv_with_html_content(self):
-        text = "col1,col2\n<html>,text"
-        result = logic.detect_filetype(string=text, is_ml=False)
-        assert isinstance(result, dict)
+    @pytest.mark.parametrize("filetype, source_text, matching_text, non_matching_text", [
+        # JSON (Tiefe 3): Prüft das Hinzufügen eines unnötigen Keys auf der tiefsten Ebene
+        (
+            FileType.JSON,
+            '{"user": {"address": {"city": "Berlin"}}}',
+            '{"user": {"address": {"city": "Hamburg"}}}',
+            '{"user": {"address": {"city": "Berlin", "extra": "data"}}}'
+        ),
+        # XML (Tiefe 3 mit Attributen): Prüft das Hinzufügen eines Tags auf der tiefsten Ebene
+        (
+            FileType.XML,
+            '<root><section type="doc"><item id="1"/></section></root>',
+            '<root><section type="guide"><item id="99"/></section></root>',
+            '<root><section type="doc"><item id="1"><sub-item/></item></section></root>' # Extra Tag auf Ebene 3
+        ),
+        # CSV (Komplexes Escaping): Prüft, ob das Regex korrekt erkennt, wenn Quoting-Regeln verletzt werden
+        (
+            FileType.CSV,
+            'Col1,"Col2, Quoted",Col3\nVal1,"Value, with comma",Val3',
+            'Col1,"Col2, Quoted",Col3\nValA,"Another, value",ValB',
+            'Col1,"Col2, Quoted",Col3\nValA,Another value,ValB'
+        ),
+        # HTML (Sibling Tags): Prüft, ob die Reihenfolge und Art der Geschwister-Elemente fixiert ist
+        (
+            FileType.HTML,
+            '<div><p>Text</p><span>Link</span></div>',
+            '<div><p>New Text</p><span>New Link</span></div>',
+            '<div><span>Link</span><p>Text</p></div>'
+        ),
+    ])
+    def test_generated_regex_nested_and_strict(self, filetype, source_text, matching_text, non_matching_text):
+        """
+        Testet erweiterte Edge Cases: Tiefe Verschachtelung (Tiefe >= 3) und strikte
+        Erkennung von minimalen Strukturverletzungen auf den inneren Ebenen.
+        """
 
-    def test_json_with_xml_inside(self):
-        text = '{"data": "<xml></xml>"}'
-        result = logic.detect_filetype(string=text, is_ml=False)
-        assert isinstance(result, dict)
+        # 1. Generiere das Regex basierend auf dem Quell-String
+        try:
+            generated_regex_str = logic.generate_regex(filetype=filetype, string=source_text)
+            generated_regex = re.compile(generated_regex_str)
+        except Exception as e:
+            pytest.fail(f"Fehler bei der Regex-Generierung für {filetype.name} (Nested Test): {e}")
+
+        # Wichtiger Schritt: Überprüfe, ob die generierte Regex die richtige Struktur erkennt
+        # Wir verwenden logic.match, welches (wie in der vorherigen Antwort bestätigt)
+        # den gesamten String überprüfen soll (Full Match).
+
+        # 2. Test gegen den passenden String (Struktur intakt)
+        match_result = logic.match(generated_regex, matching_text)
+        assert match_result is True, (
+            f"FEHLGESCHLAGEN (Nested Match): Generated Regex:\n'{generated_regex_str}' "
+            f"\n\tsollte matchen:\n'{matching_text}'"
+        )
+
+        # 3. Test gegen den NICHT passenden String (Struktur verletzt)
+        non_match_result = logic.match(generated_regex, non_matching_text)
+        assert non_match_result is False, (
+            f"FEHLGESCHLAGEN (Nested Non-Match): Generated Regex:\n'{generated_regex_str}' "
+            f"\n\tsollte NICHT matchen:\n'{non_matching_text}'"
+        )
+
