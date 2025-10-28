@@ -294,3 +294,82 @@ class TestGenerateRegexExtremeEdgeCases:
             f"\n\tsollte NICHT matchen:\n'{non_matching_text}'"
         )
 
+
+    @pytest.mark.parametrize(
+    "filetype, source_text, matching_text_flexible, matching_text_whitespace, non_matching_text_invalid_tag", [
+        # XML/HTML Flexibilität: Beliebige Attribute und Whitespace erlaubt
+        (
+                FileType.XML,
+                '<user name="Max">1</user>',
+                '<user id="123" name="Leo" data-info="test">99</user>',
+                '< user \n id = "123" \n > \n 99 \n </ user >',
+                '<user_tag id="123">1</user_tag>'
+        ),
+        # JSON Whitespace Flexibilität: Beliebige Leerzeichen erlaubt, Struktur fixiert
+        (
+                FileType.JSON,
+                '{"attr1": [1, 2], "val": "a"}',
+                '',
+                '{   "attr1"  :  [ 99 , 88 ]  , "val" : "b" }',
+                '{"attr1": [1, 2], "val_extra": "a"}'
+        ),
+        # CSV Whitespace Flexibilität: Beliebige Leerzeichen um Trennzeichen erlaubt
+        (
+                FileType.CSV,
+                'col1,col2,col3\n1,2,3',
+                '',
+                ' col1 , col2 , col3 \n 1 , 2 , 3 ',
+                'col1;col2;col3\n1;2;3'
+        ),
+        # HTML Flexibilität: Beliebige Attribute und Whitespace erlaubt
+        (
+                FileType.HTML,
+                '<a href="/home">Home</a>',
+                '<a id="link1" class="nav" href="/about" target="_blank">About Us</a>',
+                '< a \n href = " /home " \n > \n Home \n </ a >',
+                '<about href="/home">Home</about>'
+        ),
+        # XML (Kommentare und Processing Instructions): Sollte ignoriert werden
+        (
+                FileType.XML,
+                '<!-- Comment --><root><item/></root>',
+                '<?xml-stylesheet type="text/xsl" href="style.xsl"?><root><item/></root>',
+                '< root > < item > ssd   </  item >    </  root >',
+                '<root><item><extra/></item></root>'
+        )
+    ])
+    def test_generated_regex_attribute_and_whitespace_flexibility(self, filetype, source_text, matching_text_flexible,
+                                                              matching_text_whitespace, non_matching_text_invalid_tag):
+        """
+        Testet die Toleranz des generierten Regex:
+        1. Bei XML/HTML: Akzeptanz beliebiger zusätzlicher Attribute.
+        2. Bei allen: Toleranz gegenüber beliebigen Whitespace-Mengen.
+        3. Ablehnung bei ungültigen Tag-Namen (XML/HTML) oder Keys (JSON).
+        """
+
+        # 1. Generiere das Regex
+        try:
+            generated_regex_str = logic.generate_regex(filetype=filetype, string=source_text)
+            generated_regex = re.compile(generated_regex_str)
+        except Exception as e:
+            pytest.fail(f"Fehler bei der Regex-Generierung für {filetype.name} (Flexibility Test): {e}")
+
+        # Test A: Flexible Attribute (Relevant für XML/HTML)
+        # Wenn JSON, wird der Test übersprungen, da JSON keine Attribute hat.
+        if filetype in [FileType.XML, FileType.HTML]:
+            match_result_flex = logic.match(generated_regex, matching_text_flexible)
+            assert match_result_flex is True, (
+                f"FEHLGESCHLAGEN (Flex. Attributes): Regex sollte mit zusätzlichen Attributen matchen."
+            )
+
+        # Test B: Whitespace Flexibilität (Relevant für JSON, XML, HTML)
+        match_result_ws = logic.match(generated_regex, matching_text_whitespace)
+        assert match_result_ws is True, (
+            f"FEHLGESCHLAGEN (Whitespace): Regex sollte mit variablem Whitespace matchen."
+        )
+
+        # Test C: Ungültige Struktur
+        non_match_invalid_struct = logic.match(generated_regex, non_matching_text_invalid_tag)
+        assert non_match_invalid_struct is False, (
+            f"FEHLGESCHLAGEN (Invalid JSON Key): Regex sollte ungültigen Key ablehnen."
+        )
