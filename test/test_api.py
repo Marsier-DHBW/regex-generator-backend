@@ -13,7 +13,7 @@ from backend.enums.FileType import FileType
 
 class TestMatch:
     def test_match_valid_true(self):
-        regex = re.compile(r"Order ID: \d+")
+        regex = re.compile(r"\d+")
         text = "Order ID: 12345"
         assert logic.match(regex, text) is True
 
