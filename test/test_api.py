@@ -222,8 +222,9 @@ class TestDetectFiletype:
         assert any(FileType.CSV.name.lower() == k.lower() for k in result.keys())
 
     def test_detect_filetype_empty_string(self):
-        with pytest.raises(Exception):
-            logic.detect_filetype(string="", is_ml=False)
+        result = logic.detect_filetype(string="", is_ml=False)
+        assert isinstance(result, dict)
+        assert any(FileType.UNSUPPORTED.name.lower() == k.lower() for k in result.keys())
 
     # Die ML-Mock-Tests sind im Original bereits gut und werden hier ausgelassen.
 
