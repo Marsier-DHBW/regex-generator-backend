@@ -110,10 +110,15 @@ def __predict(text: str):
     chunks = __chunk_text(text)
     inputs = tokenizer(chunks, padding=True, truncation=True, max_length=512, return_tensors='pt')
     outputs = model(**inputs)
-    probs = torch.nn.functional.softmax(outputs.logits, dim=-1).detach().cpu().numpy()
+    probs = __softmax_np(outputs.logits.detach().cpu().numpy(), axis=-1)
     avg_probs = np.mean(probs, axis=0)  # Durchschnitt über Chunks
     return avg_probs
 
+def __softmax_np(x, axis=-1):
+    x = np.array(x)
+    x_max = np.max(x, axis=axis, keepdims=True)
+    e_x = np.exp(x - x_max)
+    return e_x / np.sum(e_x, axis=axis, keepdims=True)
 
 path = '../ml_results/'
 trainer_path = path + 'distilbert_trained'
