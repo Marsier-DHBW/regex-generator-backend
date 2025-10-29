@@ -95,7 +95,8 @@ def __get_header_pattern(header: Sequence[str], lock_delimiter: str, generic_fie
 
 def __infer_column_field_patterns(sample_rows: Sequence[Sequence[str]], num_columns: int,
                                   delimiter: str, quotechar: Optional[str],
-                                  generic_field_pattern: str) -> list:
+                                  generic_field_pattern: str,
+                                  header_parsed: Sequence[str], lock_delimiter: str) -> list:
     """
     Infer per-column regex field patterns from sample rows.
 
@@ -107,11 +108,13 @@ def __infer_column_field_patterns(sample_rows: Sequence[Sequence[str]], num_colu
     # normalize rows to num_columns (pad missing with empty strings)
     normalized_rows = []
     for r in sample_rows:
-        if len(r) < num_columns:
-            r = r + [''] * (num_columns - len(r))
-        elif len(r) > num_columns:
-            r = r[:num_columns]
-        normalized_rows.append(r)
+        # ensure we operate on a mutable list
+        rlist = list(r)
+        if len(rlist) < num_columns:
+            rlist.extend([''] * (num_columns - len(rlist)))
+        elif len(rlist) > num_columns:
+            rlist = rlist[:num_columns]
+        normalized_rows.append(rlist)
 
     # helper to detect numeric strings (integers or decimals, optional sign)
     num_re = re.compile(r'^[+-]?\d+(?:\.\d+)?$')
@@ -119,32 +122,90 @@ def __infer_column_field_patterns(sample_rows: Sequence[Sequence[str]], num_colu
     col_field_patterns: list[str] = []
     esc_quote = re.escape(quotechar) if quotechar else None
 
+    # raw delimiter char for splitting composite fields
+    raw_delim = delimiter
+
     for ci in range(num_columns):
         values = [row[ci].strip() if row[ci] is not None else '' for row in normalized_rows]
         non_empty = [v for v in values if v != '']
-        if not non_empty:
-            ctype = 'mixed'
-        else:
-            numeric_count = sum(1 for v in non_empty if num_re.fullmatch(v))
-            if numeric_count == len(non_empty):
-                ctype = 'numeric'
-            elif numeric_count == 0:
-                ctype = 'string'
-            else:
-                ctype = 'mixed'
+        # If header for this column is composite (contains the delimiter),
+        # split the cell values by delimiter and infer per-subfield types.
+        header_val = header_parsed[ci] if ci < len(header_parsed) else ''
+        if header_val and raw_delim in header_val:
+            # number of subfields determined by header literal
+            sub_count = len([p for p in header_val.split(raw_delim)])
 
-        if ctype == 'numeric':
-            # allow quoted numeric or unquoted numeric (with optional surrounding ws)
-            num_inner = r'[+-]?\d+(?:\.\d+)?'
+            # collect subfield values per position
+            sub_values: list[list[str]] = [[] for _ in range(sub_count)]
+            for v in values:
+                parts = [p.strip() for p in v.split(raw_delim)] if v != '' else []
+                # normalize parts to sub_count
+                if len(parts) < sub_count:
+                    parts = parts + [''] * (sub_count - len(parts))
+                elif len(parts) > sub_count:
+                    parts = parts[:sub_count]
+                for si, pv in enumerate(parts):
+                    sub_values[si].append(pv)
+
+            # infer each subfield type and build subpatterns
+            sub_patterns: list[str] = []
+            for sv in sub_values:
+                non_empty_sub = [x for x in sv if x != '']
+                if not non_empty_sub:
+                    subtype = 'mixed'
+                else:
+                    num_count = sum(1 for x in non_empty_sub if num_re.fullmatch(x))
+                    if num_count == len(non_empty_sub):
+                        subtype = 'numeric'
+                    elif num_count == 0:
+                        subtype = 'string'
+                    else:
+                        subtype = 'mixed'
+
+                if subtype == 'numeric':
+                    num_inner = r'[+-]?\d+(?:\.\d+)?'
+                    # when inside composite, subvalues are not individually quoted,
+                    # so use unquoted-style inner that forbids delimiter/newline
+                    sub_patterns.append(rf'\s*{num_inner}\s*')
+                else:
+                    # allow any chars except delimiter/newline for unquoted subvalues
+                    esc_delim = re.escape(delimiter)
+                    sub_patterns.append(rf'\s*[^{esc_delim}\r\n]*\s*')
+
+            # join subpatterns with lock_delimiter to allow flexible spacing
+            inner_pattern = lock_delimiter.join(sub_patterns)
+
             if esc_quote:
-                quoted_pattern = rf'\s*{esc_quote}{num_inner}{esc_quote}\s*'
-                unquoted_pattern = rf'\s*{num_inner}\s*'
+                quoted_pattern = rf'\s*{esc_quote}{inner_pattern}{esc_quote}\s*'
+                unquoted_pattern = rf'\s*{inner_pattern}\s*'
                 col_field_patterns.append(rf'(?:{quoted_pattern}|{unquoted_pattern})')
             else:
-                col_field_patterns.append(rf'\s*{num_inner}\s*')
+                col_field_patterns.append(rf'\s*{inner_pattern}\s*')
         else:
-            # string or mixed: use the generic field pattern (already allows quoted/unquoted)
-            col_field_patterns.append(generic_field_pattern)
+            # non-composite: infer single-field numeric/string/mixed
+            if not non_empty:
+                ctype = 'mixed'
+            else:
+                numeric_count = sum(1 for v in non_empty if num_re.fullmatch(v))
+                if numeric_count == len(non_empty):
+                    ctype = 'numeric'
+                elif numeric_count == 0:
+                    ctype = 'string'
+                else:
+                    ctype = 'mixed'
+
+            if ctype == 'numeric':
+                # allow quoted numeric or unquoted numeric (with optional surrounding ws)
+                num_inner = r'[+-]?\d+(?:\.\d+)?'
+                if esc_quote:
+                    quoted_pattern = rf'\s*{esc_quote}{num_inner}{esc_quote}\s*'
+                    unquoted_pattern = rf'\s*{num_inner}\s*'
+                    col_field_patterns.append(rf'(?:{quoted_pattern}|{unquoted_pattern})')
+                else:
+                    col_field_patterns.append(rf'\s*{num_inner}\s*')
+            else:
+                # string or mixed: use the generic field pattern (already allows quoted/unquoted)
+                col_field_patterns.append(generic_field_pattern)
 
     return col_field_patterns
 
@@ -232,7 +293,8 @@ def __build_csv_regex(example_csv_content: str) -> str:
     # infer per-column patterns using helper
     col_field_patterns = __infer_column_field_patterns(sample_rows, num_columns,
                                                       delimiter, quotechar,
-                                                      generic_field_pattern)
+                                                      generic_field_pattern,
+                                                      header_parsed, lock_delimiter)
 
     # build row pattern using per-column patterns for data rows
     data_row_pattern_content = lock_delimiter.join(col_field_patterns)
