@@ -49,7 +49,8 @@ def __get_csv_field_pattern(delimiter: str, quotechar: Optional[str]) -> str:
         return rf'\s*[^{esc_delimiter}\r\n]*\s*'
 
 
-def __get_header_pattern(header: Sequence[str], lock_delimiter: str, quotechar: Optional[str], generic_field_pattern: str) -> str:
+def __get_header_pattern(header: Sequence[str], lock_delimiter: str, quotechar: Optional[str],
+                         generic_field_pattern: str) -> str:
     """
     Builds a header line regex from a parsed header (sequence of field strings).
 
@@ -67,7 +68,7 @@ def __get_header_pattern(header: Sequence[str], lock_delimiter: str, quotechar: 
 
     delim = lock_delimiter.replace(r'\s*', '')
     if delim.startswith('\\'):
-         delim = delim[1:]
+        delim = delim[1:]
 
     esc_quote = re.escape(quotechar) if quotechar else None
 
@@ -202,7 +203,7 @@ def __infer_column_field_patterns(sample_rows: Sequence[Sequence[str]], num_colu
 
             if ctype == 'numeric':
                 # allow quoted numeric or unquoted numeric (with optional surrounding ws)
-                num_inner = r'[+-]?\d+(?:[.,]\d+)?$'
+                num_inner = r'[+-]?\d+(?:[.,]\d+)?'
                 if esc_quote:
                     quoted_pattern = rf'\s*{esc_quote}\s*{num_inner}\s*{esc_quote}\s*'
                     unquoted_pattern = rf'\s*{num_inner}\s*'
@@ -298,9 +299,9 @@ def __build_csv_regex(example_csv_content: str) -> str:
 
     # infer per-column patterns using helper
     col_field_patterns = __infer_column_field_patterns(sample_rows, num_columns,
-                                                      delimiter, quotechar,
-                                                      generic_field_pattern,
-                                                      header_parsed, lock_delimiter)
+                                                       delimiter, quotechar,
+                                                       generic_field_pattern,
+                                                       header_parsed, lock_delimiter)
 
     # build row pattern using per-column patterns for data rows
     data_row_pattern_content = lock_delimiter.join(col_field_patterns)
