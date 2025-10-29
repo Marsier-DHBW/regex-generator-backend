@@ -9,7 +9,7 @@ def xml_pattern(string: str) -> Optional[Pattern[str]]:
         root = ElementTree.fromstring(string)
         pattern_string = __build_xml_regex_recursive(element=root, depth=1, max_depth=3)
         pattern = re.compile(fr"(?s){pattern_string}")
-        return pattern.pattern
+        return pattern
     except ElementTree.ParseError:
         print("Fehler beim parsing des XML")
         return None
