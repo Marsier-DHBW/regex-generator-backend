@@ -22,6 +22,6 @@ def __build_xml_regex_recursive(element: ElementTree.Element, depth: int, max_de
         child_patterns = []
         for child in element:
             child_patterns.append(__build_xml_regex_recursive(child, depth + 1, max_depth))
-        content_pattern = "\\s*".join(child_patterns)
+        content_pattern = fr"\s*".join(child_patterns)
 
-    return f"{open_tag}\\s*{content_pattern}\\s*{close_tag}"
+    return fr"{open_tag}\s*{content_pattern}\s*{close_tag}"
