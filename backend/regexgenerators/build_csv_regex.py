@@ -49,7 +49,7 @@ def __get_csv_field_pattern(delimiter: str, quotechar: Optional[str]) -> str:
         return rf'\s*[^{esc_delimiter}\r\n]*\s*'
 
 
-def __get_header_pattern(header: Sequence[str], lock_delimiter: str, generic_field_pattern: str) -> str:
+def __get_header_pattern(header: Sequence[str], lock_delimiter: str, quotechar: Optional[str], generic_field_pattern: str) -> str:
     """
     Builds a header line regex from a parsed header (sequence of field strings).
 
@@ -69,6 +69,8 @@ def __get_header_pattern(header: Sequence[str], lock_delimiter: str, generic_fie
     if delim.startswith('\\'):
          delim = delim[1:]
 
+    esc_quote = re.escape(quotechar) if quotechar else None
+
     for value in header:
         if value is None:
             value = ''
@@ -82,10 +84,16 @@ def __get_header_pattern(header: Sequence[str], lock_delimiter: str, generic_fie
             escaped_parts = [re.escape(part) for part in parts]
 
             literal_pattern = lock_delimiter.join(escaped_parts)
-            p = rf'(?:\s*"\s*{literal_pattern}\s*"\s*|\s*\'\s*{literal_pattern}\s*\'\s*)'
+            if esc_quote:
+                p = rf'\s*{esc_quote}\s*{literal_pattern}\s*{esc_quote}\s*'
+            else:
+                p = rf'(?:\s*"\s*{literal_pattern}\s*"\s*|\s*\'\s*{literal_pattern}\s*\'\s*)'
         else:
             literal_pattern = re.escape(s)
-            p = rf'(?:\s*"\s*{literal_pattern}\s*"\s*|\s*\'\s*{literal_pattern}\s*\'\s*|\s*{literal_pattern}\s*)'
+            if esc_quote:
+                p = rf'(?:\s*{esc_quote}\s*{literal_pattern}\s*{esc_quote}\s*|\s*{literal_pattern}\s*)'
+            else:
+                p = rf'\s*{literal_pattern}\s*'
 
         field_patterns.append(p)
 
@@ -117,7 +125,7 @@ def __infer_column_field_patterns(sample_rows: Sequence[Sequence[str]], num_colu
         normalized_rows.append(rlist)
 
     # helper to detect numeric strings (integers or decimals, optional sign)
-    num_re = re.compile(r'^[+-]?\d+(?:\.\d+)?$')
+    num_re = re.compile(r'^[+-]?\d+(?:[.,]\d+)?$')
 
     col_field_patterns: list[str] = []
     esc_quote = re.escape(quotechar) if quotechar else None
@@ -128,8 +136,6 @@ def __infer_column_field_patterns(sample_rows: Sequence[Sequence[str]], num_colu
     for ci in range(num_columns):
         values = [row[ci].strip() if row[ci] is not None else '' for row in normalized_rows]
         non_empty = [v for v in values if v != '']
-        # If header for this column is composite (contains the delimiter),
-        # split the cell values by delimiter and infer per-subfield types.
         header_val = header_parsed[ci] if ci < len(header_parsed) else ''
         if header_val and raw_delim in header_val:
             # number of subfields determined by header literal
@@ -196,9 +202,9 @@ def __infer_column_field_patterns(sample_rows: Sequence[Sequence[str]], num_colu
 
             if ctype == 'numeric':
                 # allow quoted numeric or unquoted numeric (with optional surrounding ws)
-                num_inner = r'[+-]?\d+(?:\.\d+)?'
+                num_inner = r'[+-]?\d+(?:[.,]\d+)?$'
                 if esc_quote:
-                    quoted_pattern = rf'\s*{esc_quote}{num_inner}{esc_quote}\s*'
+                    quoted_pattern = rf'\s*{esc_quote}\s*{num_inner}\s*{esc_quote}\s*'
                     unquoted_pattern = rf'\s*{num_inner}\s*'
                     col_field_patterns.append(rf'(?:{quoted_pattern}|{unquoted_pattern})')
                 else:
@@ -279,7 +285,7 @@ def __build_csv_regex(example_csv_content: str) -> str:
 
     header_row_pattern_content = lock_delimiter.join([generic_field_pattern] * num_columns)
 
-    header_pattern = __get_header_pattern(header_parsed, lock_delimiter, generic_field_pattern)
+    header_pattern = __get_header_pattern(header_parsed, lock_delimiter, quotechar, generic_field_pattern)
 
     # Collect sample rows (remaining rows from reader) to infer column types
     sample_rows = []
@@ -311,7 +317,7 @@ def __build_csv_regex(example_csv_content: str) -> str:
 
 # quick manual test when run directly
 if __name__ == '__main__':
-    source_text = 'ID,"Name, Titel",Age\n1,"Max Mustermann, CEO",30'
+    source_text = 'ID,"Name, Titel",Age\n1,"Max Mustermann, CEO",30\n2,"Fax Mustermann, CDO",31\n3,"Nax Mustermann, CTO",32'
     structure_regex_complex = __build_csv_regex(source_text)
     print('Generated regex:')
     print(structure_regex_complex)
