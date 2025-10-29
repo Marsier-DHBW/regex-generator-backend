@@ -3,8 +3,6 @@ import json
 import re
 from io import StringIO
 from xml.etree import ElementTree as ET
-
-import ml.transformer
 import ml.transformer as transformer
 from backend.enums.FileType import FileType as ft
 from backend.regexgenerators import build_json_regex, build_xml_regex, build_html_regex, build_csv_regex
@@ -14,7 +12,7 @@ def match(pattern: re.Pattern[str], string: str) -> bool:
     if string is None or len(string) == 0 or pattern is None:
         return False
     else:
-        return bool(pattern.match(string))
+        return bool(pattern.fullmatch(string))
 
 
 def generate_regex(filetype: ft, string: str) -> str:
