@@ -48,8 +48,3 @@ def __build_json_regex_recursive(data, depth=0, max_depth=3):
 
     else:
         return fr'"[^"\\]*"'
-
-
-if __name__ == '__main__':
-    js = r'{"house":[{"room_number": 48},{"room_number": 50},{"room_number": 52}],"street": "Mustermannstraße"}'
-    print(str(json_pattern(js).pattern))
