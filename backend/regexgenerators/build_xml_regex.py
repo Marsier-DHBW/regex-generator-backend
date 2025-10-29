@@ -6,16 +6,17 @@ from typing import Optional
 def xml_pattern(string: str) -> Optional[Pattern[str]]:
     try:
         root = ElementTree.fromstring(string)
-        pattern = re.compile(__build_xml_regex_recursive(element=root, depth=1, max_depth=3))
-        return pattern
+        pattern_string = __build_xml_regex_recursive(element=root, depth=1, max_depth=3)
+        pattern = re.compile(fr"(?s){pattern_string}")
+        return pattern.pattern
     except ElementTree.ParseError:
         print("Fehler beim parsing des XML")
         return None
 
 def __build_xml_regex_recursive(element: ElementTree.Element, depth: int, max_depth: int) -> str:
     tag = re.escape(element.tag)
-    open_tag = f"<\\s*{tag}[^>]*>"
-    close_tag = f"<\\s*/\\s*{tag}\\s*>"
+    open_tag = fr"<\s*{tag}\b[^>]*>"
+    close_tag = fr"<\s*/\s*{tag}\s*>"
     if depth > max_depth or len(element) == 0:
         content_pattern = "[^<]*"
     else:
