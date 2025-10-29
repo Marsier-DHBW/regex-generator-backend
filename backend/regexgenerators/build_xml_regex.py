@@ -1,4 +1,5 @@
 import re
+import unittest
 from re import Pattern
 from xml.etree import ElementTree
 from typing import Optional
@@ -17,8 +18,10 @@ def __build_xml_regex_recursive(element: ElementTree.Element, depth: int, max_de
     tag = re.escape(element.tag)
     open_tag = fr"<\s*{tag}\b[^>]*>"
     close_tag = fr"<\s*/\s*{tag}\s*>"
-    if depth > max_depth or len(element) == 0:
-        content_pattern = "[^<]*"
+    if depth >= max_depth:
+        content_pattern = r".*?"
+    elif len(element) == 0:
+        content_pattern = r"[^<]*"
     else:
         child_patterns = []
         for child in element:
