@@ -2,8 +2,11 @@ import re
 from re import Pattern
 
 def html_pattern(string: str) -> Pattern[str]:
-    regex_pattern = __build_html_regex(string)
-    return re.compile(regex_pattern, re.DOTALL)
+    try:
+        regex_pattern = __build_html_regex(string)
+        return re.compile(regex_pattern, re.DOTALL)
+    except Exception as e:
+        raise e
 
 def __build_html_regex(example_html: str) -> str:
     """

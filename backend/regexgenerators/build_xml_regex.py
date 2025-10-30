@@ -1,18 +1,16 @@
 import re
-import unittest
 from re import Pattern
 from xml.etree import ElementTree
-from typing import Optional
 
-def xml_pattern(string: str) -> Optional[Pattern[str]]:
+def xml_pattern(string: str) -> Pattern[str]:
     try:
         root = ElementTree.fromstring(string)
         pattern_string = __build_xml_regex_recursive(element=root, depth=1, max_depth=3)
         pattern = re.compile(fr"(?s){pattern_string}")
         return pattern
     except ElementTree.ParseError:
-        print("Fehler beim parsing des XML")
-        return None
+        raise Exception("Not a valid XML file")
+
 
 def __build_xml_regex_recursive(element: ElementTree.Element, depth: int, max_depth: int) -> str:
     tag = re.escape(element.tag)

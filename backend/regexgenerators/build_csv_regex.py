@@ -20,9 +20,11 @@ def csv_pattern(string: str) -> Pattern[str]:
     Returns:
         re.Pattern compiled with DOTALL.
     """
-    regex_pattern = __build_csv_regex(string)
-    return re.compile(regex_pattern, re.DOTALL)
-
+    try:
+        regex_pattern = __build_csv_regex(string)
+        return re.compile(regex_pattern, re.DOTALL)
+    except Exception as e:
+        raise e
 
 def __get_csv_field_pattern(delimiter: str, quotechar: Optional[str]) -> str:
     """
