@@ -44,7 +44,11 @@ def __build_json_regex_recursive(data, depth=0, max_depth=3):
         return r'(true|false)'
 
     elif data is None:
-        raise ValueError("Data is null")
+        return r'null'
 
     else:
         return fr'"[^"\\]*"'
+
+if __name__ == '__main__':
+    stri = r'{"kek": null}'
+    print(str(json_pattern(stri).pattern))
