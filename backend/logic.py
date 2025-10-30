@@ -17,18 +17,23 @@ def match(pattern: re.Pattern[str], string: str) -> bool:
 
 def generate_regex(filetype: ft, string: str) -> str:
     regex: re.Pattern[str]
-    match filetype:
-        case ft.JSON:
-            regex = build_json_regex.json_pattern(string)
-        case ft.XML:
-            regex = build_xml_regex.xml_pattern(string)
-        case ft.HTML:
-            regex = build_html_regex.html_pattern(string)
-        case ft.CSV:
-            regex = build_csv_regex.csv_pattern(string)
-        case _:
-            raise Exception(f"Unsupported file type: {filetype}")
-    return str(regex.pattern)
+    try:
+        if ft is None or str is None or len(str) == 0:
+            raise Exception("Some of the provided values are null")
+        match filetype:
+            case ft.JSON:
+                regex = build_json_regex.json_pattern(string)
+            case ft.XML:
+                regex = build_xml_regex.xml_pattern(string)
+            case ft.HTML:
+                regex = build_html_regex.html_pattern(string)
+            case ft.CSV:
+                regex = build_csv_regex.csv_pattern(string)
+            case _:
+                raise Exception(f"Unsupported file type: {filetype}")
+        return str(regex.pattern)
+    except Exception as e:
+        raise e
 
 
 def detect_filetype(string: str, is_ml: bool) -> dict:

@@ -4,8 +4,11 @@ from re import Pattern
 
 
 def json_pattern(string: str) -> Pattern[str]:
-    regex_pattern = f'^{__build_json_regex_recursive(data=string)}$'
-    return re.compile(regex_pattern)
+    try:
+        regex_pattern = f'^{__build_json_regex_recursive(data=string)}$'
+        return re.compile(regex_pattern)
+    except Exception as ex:
+        raise ex
 
 def __build_json_regex_recursive(data, depth=0, max_depth=3):
     if depth > max_depth:
@@ -48,7 +51,3 @@ def __build_json_regex_recursive(data, depth=0, max_depth=3):
 
     else:
         return fr'"[^"\\]*"'
-
-if __name__ == '__main__':
-    stri = r'{"kek": null}'
-    print(str(json_pattern(stri).pattern))
