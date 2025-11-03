@@ -54,12 +54,12 @@ def detect_filetype(string: str, is_ml: bool) -> dict:
         # 1. JSON
         elif is_json(data_string):
             filetype = ft.JSON
-        # 2. HTML
-        elif is_html(data_string):
-            filetype = ft.HTML
-        # 3. XML
+        # 2. XML
         elif is_xml(data_string):
             filetype = ft.XML
+        # 3. HTML
+        elif is_html(data_string):
+            filetype = ft.HTML
         # 4. CSV
         elif is_csv(data_string):
             filetype = ft.CSV
