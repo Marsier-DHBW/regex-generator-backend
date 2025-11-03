@@ -18,7 +18,7 @@ def match(pattern: re.Pattern[str], string: str) -> bool:
 def generate_regex(filetype: ft, string: str) -> str:
     regex: re.Pattern[str]
     try:
-        if ft is None or str is None or len(str) == 0:
+        if ft is None or string is None or len(string) == 0:
             raise Exception("Some of the provided values are null")
         match filetype:
             case ft.JSON:

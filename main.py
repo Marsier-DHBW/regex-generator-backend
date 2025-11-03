@@ -53,8 +53,8 @@ async def match(request: Request) -> JSONResponse:
 @app.post(api_endpoint + "/generate")
 async def generate_regex(request: Request) -> JSONResponse:
     request_body = await request.json()
-    string = request_body.get("text")
-    filetype = request_body.get("filetype")
+    string = str(request_body.get("text"))
+    filetype = str(request_body.get("filetype"))
     ft = FileType.UNSUPPORTED
     result_obj = {"value": "", "message": ""}
 
@@ -64,7 +64,7 @@ async def generate_regex(request: Request) -> JSONResponse:
     elif filetype is not None and len(filetype) > 0:
         bad_type = False
         try:
-            ft = FileType[filetype]
+            ft = FileType[filetype.upper()]
             bad_type = ft == FileType.UNSUPPORTED
         except Exception:
             bad_type = True
