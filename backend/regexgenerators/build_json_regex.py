@@ -19,8 +19,7 @@ def __build_json_regex_recursive(data, depth=0, max_depth=3):
             parsed = json.loads(data)
             return __build_json_regex_recursive(parsed, depth, max_depth)
         except json.JSONDecodeError:
-            # Wenn kein gültiges JSON, dann ist es ein reiner Textwert
-            return r'"[^"\\]*"'
+            return r'"([^"\\]|\\[^ ])*"'
 
     elif isinstance(data, dict):
         pattern_list = []
@@ -49,4 +48,4 @@ def __build_json_regex_recursive(data, depth=0, max_depth=3):
         return r'null'
 
     else:
-        return fr'"[^"\\]*"'
+        return r'"([^"\\]|\\[^ ])*"'
