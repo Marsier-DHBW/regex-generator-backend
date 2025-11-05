@@ -10,7 +10,9 @@ from backend.enums.FileType import FileType
 
 app = FastAPI()
 origins = [
-    "http://localhost:4200"
+    "http://localhost:4200",
+    "https://www.regexify.eu/home",
+    "https://www.regexify.eu"
 ]
 
 app.add_middleware(
