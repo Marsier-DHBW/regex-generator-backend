@@ -14,7 +14,6 @@ def __build_json_regex_recursive(data, depth=0, max_depth=3):
     if depth > max_depth:
         raise ValueError("Maximale Tiefe überschritten")
 
-        # Falls das Eingabedatum ein JSON-String ist, automatisch parsen
     if isinstance(data, str):
         try:
             parsed = json.loads(data)
