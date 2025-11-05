@@ -40,11 +40,11 @@ def __build_json_regex_recursive(data, depth=0, max_depth=3):
             longest_pattern = max(inner_patterns, key=len)
             return fr'\[\s*(({longest_pattern}\s*,\s*)*\s*({longest_pattern}\s*){{1}})?\s*\]'
 
-    elif isinstance(data, (int, float)):
-        return r'-?\d+(\.\d+)?'
-
     elif isinstance(data, bool):
         return r'(true|false)'
+
+    elif isinstance(data, (int, float)):
+        return r'-?\d+(\.\d+)?'
 
     elif data is None:
         return r'null'
