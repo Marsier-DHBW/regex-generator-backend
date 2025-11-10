@@ -17,7 +17,7 @@ def __build_xml_regex_recursive(element: ElementTree.Element, depth: int, max_de
     open_tag = fr"<\s*{tag}\b[^>]*>"
     close_tag = fr"<\s*/\s*{tag}\s*>"
     if depth >= max_depth:
-        content_pattern = r".*?"
+        raise ValueError("Maximale Tiefe überschritten")
     elif len(element) == 0:
         content_pattern = r"[^<]*"
     else:
