@@ -96,7 +96,7 @@ Bei lokaler standalone ausführung des Python-Projekts ist die API über den Por
 ```
 {
     "regex": "string",
-    "text": "string""
+    "text": "string"
 }
 ```
 - **Response Body:** JSON
